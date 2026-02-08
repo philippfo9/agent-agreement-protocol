@@ -5,7 +5,6 @@ import { AgreementAccount } from "@/lib/types";
 import { StatusBadge } from "./StatusBadge";
 import {
   AGREEMENT_TYPE_LABELS,
-  VISIBILITY_LABELS,
 } from "@/lib/constants";
 import {
   shortenPubkey,
@@ -15,6 +14,16 @@ import {
   bytesToString,
 } from "@/lib/utils";
 
+function WindowDots() {
+  return (
+    <div className="flex items-center gap-1.5 mb-4">
+      <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+    </div>
+  );
+}
+
 export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
   const { account, publicKey } = agreement;
   const idHex = agreementIdToHex(account.agreementId);
@@ -22,43 +31,45 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
   const termsUri = bytesToString(account.termsUri);
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-colors">
-      <div className="flex items-start justify-between mb-3">
+    <Link
+      href={`/agreement/${publicKey.toBase58()}`}
+      className="block document-card p-6 hover:shadow-document-hover transition-all duration-300"
+    >
+      <WindowDots />
+
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-sm text-gray-300">
-              {idHex.slice(0, 8)}...
+          <div className="flex items-center gap-2.5">
+            <span className="font-mono text-sm text-gray-700 font-medium">
+              {idHex.slice(0, 8)}…
             </span>
             <StatusBadge status={account.status} />
           </div>
-          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-            <span>{AGREEMENT_TYPE_LABELS[account.agreementType] || "Unknown"}</span>
-            <span>·</span>
-            <span className={isPrivate ? "text-yellow-500" : ""}>
-              {isPrivate ? "🔒 Private" : "🌐 Public"}
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
+            <span className="font-medium">{AGREEMENT_TYPE_LABELS[account.agreementType] ?? "Unknown"}</span>
+            <span className="text-gray-300">·</span>
+            <span className={isPrivate ? "text-amber-600" : "text-gray-400"}>
+              {isPrivate ? "🔒 Private" : "Public"}
             </span>
           </div>
         </div>
-        <div className="text-right text-sm">
-          <div className="text-gray-400">
-            {account.numSigned}/{account.numParties} signed
+        <div className="text-right">
+          <div className="text-sm text-gray-700 font-medium">
+            {account.numSigned}/{account.numParties} <span className="font-serif italic text-gray-500">signed</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+      <div className="grid grid-cols-2 gap-4 text-sm mb-4">
         <div>
-          <div className="text-gray-500 text-xs">Proposer</div>
-          <Link
-            href={`/agent/${account.proposer.toBase58()}`}
-            className="text-purple-400 hover:text-purple-300 font-mono text-xs"
-          >
+          <div className="text-gray-400 text-xs mb-1">Proposer</div>
+          <span className="text-purple-600 font-mono text-xs font-medium">
             {shortenPubkey(account.proposer)}
-          </Link>
+          </span>
         </div>
         <div>
-          <div className="text-gray-500 text-xs">Escrow</div>
-          <div>
+          <div className="text-gray-400 text-xs mb-1">Escrow</div>
+          <div className="text-gray-700 font-medium">
             {account.escrowTotal.toNumber() > 0
               ? `${lamportsToSol(account.escrowTotal)} SOL`
               : "None"}
@@ -67,21 +78,21 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
       </div>
 
       {isPrivate ? (
-        <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3 text-xs text-yellow-400/80">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">
           🔒 Encrypted — only parties can view terms
         </div>
       ) : termsUri ? (
-        <div className="bg-gray-800 rounded-lg p-3 text-xs text-gray-400 font-mono break-all">
+        <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 font-mono break-all">
           {termsUri}
         </div>
       ) : null}
 
-      <div className="mt-3 pt-3 border-t border-gray-800 flex items-center justify-between text-xs text-gray-500">
+      <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400">
         <span>Created {formatTimestamp(account.createdAt)}</span>
-        {account.expiresAt.toNumber() > 0 && (
+        {account.expiresAt.toNumber() > 0 ? (
           <span>Expires {formatTimestamp(account.expiresAt)}</span>
-        )}
+        ) : null}
       </div>
-    </div>
+    </Link>
   );
 }

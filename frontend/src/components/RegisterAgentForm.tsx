@@ -71,37 +71,38 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           handleSubmit(e);
         });
       }}
-      className="space-y-4"
+      className="space-y-5"
     >
-      <h3 className="text-lg font-medium">Register New Agent</h3>
-      <p className="text-sm text-gray-500">
-        Creates a new agent identity bound to your wallet. A new keypair will be
-        generated automatically.
-      </p>
+      <div>
+        <h3 className="text-lg font-semibold text-gray-100">Register New Agent</h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Creates a new agent identity bound to your wallet. A new keypair will be generated automatically.
+        </p>
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center gap-3 cursor-pointer group">
           <input
             type="checkbox"
             checked={canSign}
             onChange={(e) => setCanSign(e.target.checked)}
-            className="rounded bg-gray-800 border-gray-700 text-purple-500 focus:ring-purple-500"
+            className="rounded bg-surface border-white/10 text-accent focus:ring-accent"
           />
-          <span className="text-sm">Can sign agreements</span>
+          <span className="text-sm text-gray-300 group-hover:text-gray-100 transition-colors">Can sign agreements</span>
         </label>
-        <label className="flex items-center gap-2 cursor-pointer">
+        <label className="flex items-center gap-3 cursor-pointer group">
           <input
             type="checkbox"
             checked={canCommitFunds}
             onChange={(e) => setCanCommitFunds(e.target.checked)}
-            className="rounded bg-gray-800 border-gray-700 text-purple-500 focus:ring-purple-500"
+            className="rounded bg-surface border-white/10 text-accent focus:ring-accent"
           />
-          <span className="text-sm">Can commit funds</span>
+          <span className="text-sm text-gray-300 group-hover:text-gray-100 transition-colors">Can commit funds</span>
         </label>
       </div>
 
       <div>
-        <label className="block text-sm text-gray-400 mb-1">
+        <label className="block text-sm text-gray-500 mb-1.5">
           Max commit (SOL) — 0 = unlimited
         </label>
         <input
@@ -110,12 +111,12 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           min="0"
           value={maxCommit}
           onChange={(e) => setMaxCommit(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="w-full bg-surface border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-gray-400 mb-1">
+        <label className="block text-sm text-gray-500 mb-1.5">
           Expires in (days) — 0 = never
         </label>
         <input
@@ -123,12 +124,12 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           min="0"
           value={expiresIn}
           onChange={(e) => setExpiresIn(e.target.value)}
-          className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+          className="w-full bg-surface border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
         />
       </div>
 
       {error ? (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-sm text-red-400">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3.5 text-sm text-red-400">
           {error}
         </div>
       ) : null}
@@ -136,7 +137,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
       <button
         type="submit"
         disabled={isPending || !wallet.publicKey}
-        className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white font-medium py-2.5 px-4 rounded-lg transition-colors"
+        className="w-full bg-accent hover:bg-accent-hover disabled:bg-white/[0.06] disabled:text-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200"
       >
         {isPending ? "Registering..." : "Register Agent"}
       </button>
