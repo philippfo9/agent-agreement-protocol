@@ -63,16 +63,43 @@ pub fn handler<'info>(
     // Party must not have already signed
     require!(!current_party.signed, AapError::AlreadySigned);
 
+    let light_cpi_accounts = CpiAccounts::new(
+        ctx.accounts.signer.as_ref(),
+        ctx.remaining_accounts,
+        crate::LIGHT_CPI_SIGNER,
+    );
+
+    invoke_sign_cpi(
+        proof,
+        signer_identity_meta,
+        signer_identity,
+        agreement_meta,
+        current_agreement,
+        party_meta,
+        current_party,
+        light_cpi_accounts,
+    )
+}
+
+#[inline(never)]
+fn invoke_sign_cpi<'info>(
+    proof: ValidityProof,
+    signer_identity_meta: CompressedAccountMeta,
+    signer_identity: CompressedAgentIdentity,
+    agreement_meta: CompressedAccountMeta,
+    current_agreement: CompressedAgreement,
+    party_meta: CompressedAccountMeta,
+    current_party: CompressedAgreementParty,
+    light_cpi_accounts: CpiAccounts<'_, 'info>,
+) -> Result<()> {
     let clock = Clock::get()?;
 
-    // Pass-through signer identity
     let identity = LightAccount::<CompressedAgentIdentity>::new_mut(
         &crate::ID,
         &signer_identity_meta,
         signer_identity,
     )?;
 
-    // Mutate agreement
     let mut agreement = LightAccount::<CompressedAgreement>::new_mut(
         &crate::ID,
         &agreement_meta,
@@ -83,7 +110,6 @@ pub fn handler<'info>(
         agreement.status = STATUS_ACTIVE;
     }
 
-    // Mutate party
     let mut party = LightAccount::<CompressedAgreementParty>::new_mut(
         &crate::ID,
         &party_meta,
@@ -91,12 +117,6 @@ pub fn handler<'info>(
     )?;
     party.signed = true;
     party.signed_at = clock.unix_timestamp;
-
-    let light_cpi_accounts = CpiAccounts::new(
-        ctx.accounts.signer.as_ref(),
-        ctx.remaining_accounts,
-        crate::LIGHT_CPI_SIGNER,
-    );
 
     LightSystemProgramCpi::new_cpi(LIGHT_CPI_SIGNER, proof)
         .with_light_account(identity)?

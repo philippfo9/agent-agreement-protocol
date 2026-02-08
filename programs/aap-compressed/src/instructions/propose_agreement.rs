@@ -8,7 +8,6 @@ use light_sdk::{
     },
 };
 use light_sdk::cpi::{LightCpiInstruction, InvokeLightSystemProgram};
-use light_sdk::constants::ADDRESS_TREE_V2;
 
 use crate::constants::*;
 use crate::errors::AapError;
@@ -75,13 +74,10 @@ pub fn handler<'info>(
         crate::LIGHT_CPI_SIGNER,
     );
 
-    // Validate address tree
+    // Resolve address tree pubkey (validated by Light system program CPI)
     let address_tree_pubkey = agreement_address_tree_info
         .get_tree_pubkey(&light_cpi_accounts)
         .map_err(|_| ErrorCode::AccountNotEnoughKeys)?;
-    if address_tree_pubkey.to_bytes() != ADDRESS_TREE_V2 {
-        return Err(AapError::InvalidAddressTree.into());
-    }
 
     // Derive agreement address: seeds = ["agreement", agreement_id]
     let (agreement_address, agreement_address_seed) = derive_address(

@@ -8,7 +8,6 @@ use light_sdk::{
     },
 };
 use light_sdk::cpi::{LightCpiInstruction, InvokeLightSystemProgram};
-use light_sdk::constants::ADDRESS_TREE_V2;
 
 use crate::constants::*;
 use crate::errors::AapError;
@@ -26,41 +25,28 @@ pub struct AddParty<'info> {
 pub fn handler<'info>(
     ctx: Context<'_, '_, '_, 'info, AddParty<'info>>,
     proof: ValidityProof,
-    // Proposer's compressed identity (read-only for auth check)
     proposer_account_meta: CompressedAccountMeta,
     proposer_identity: CompressedAgentIdentity,
-    // The agreement to update
     agreement_account_meta: CompressedAccountMeta,
     current_agreement: CompressedAgreement,
-    // The new party's identity (read-only, proves it exists)
     party_identity_account_meta: CompressedAccountMeta,
     party_identity: CompressedAgentIdentity,
-    // Address tree for creating the party account
     party_address_tree_info: PackedAddressTreeInfo,
     output_state_tree_index: u8,
     role: u8,
 ) -> Result<()> {
     let signer_key = ctx.accounts.signer.key();
 
-    // Signer must be proposer's agent_key
     require!(proposer_identity.agent_key == signer_key, AapError::Unauthorized);
-
-    // Agreement must be in Proposed status
     require!(current_agreement.status == STATUS_PROPOSED, AapError::InvalidStatus);
-
-    // Proposer must match agreement's proposer
     require!(
         current_agreement.proposer == Pubkey::from(proposer_account_meta.address),
         AapError::Unauthorized
     );
-
-    // Validate party count
     require!(
         current_agreement.parties_added < current_agreement.num_parties,
         AapError::MaxPartiesExceeded
     );
-
-    // Validate role
     require!(role <= MAX_ROLE, AapError::InvalidRole);
 
     let light_cpi_accounts = CpiAccounts::new(
@@ -69,15 +55,10 @@ pub fn handler<'info>(
         crate::LIGHT_CPI_SIGNER,
     );
 
-    // Validate address tree
     let address_tree_pubkey = party_address_tree_info
         .get_tree_pubkey(&light_cpi_accounts)
         .map_err(|_| ErrorCode::AccountNotEnoughKeys)?;
-    if address_tree_pubkey.to_bytes() != ADDRESS_TREE_V2 {
-        return Err(AapError::InvalidAddressTree.into());
-    }
 
-    // Derive party address
     let (party_address, party_address_seed) = derive_address(
         &[
             b"party",
@@ -88,21 +69,51 @@ pub fn handler<'info>(
         &crate::ID,
     );
 
-    // Pass-through proposer identity (unchanged)
+    build_accounts_and_invoke(
+        proof,
+        proposer_account_meta,
+        proposer_identity,
+        agreement_account_meta,
+        current_agreement,
+        party_identity_account_meta,
+        party_identity,
+        party_address_tree_info,
+        output_state_tree_index,
+        role,
+        party_address,
+        party_address_seed,
+        light_cpi_accounts,
+    )
+}
+
+#[inline(never)]
+fn build_accounts_and_invoke<'info>(
+    proof: ValidityProof,
+    proposer_account_meta: CompressedAccountMeta,
+    proposer_identity: CompressedAgentIdentity,
+    agreement_account_meta: CompressedAccountMeta,
+    current_agreement: CompressedAgreement,
+    party_identity_account_meta: CompressedAccountMeta,
+    party_identity: CompressedAgentIdentity,
+    party_address_tree_info: PackedAddressTreeInfo,
+    output_state_tree_index: u8,
+    role: u8,
+    party_address: [u8; 32],
+    party_address_seed: light_sdk::address::AddressSeed,
+    light_cpi_accounts: CpiAccounts<'_, 'info>,
+) -> Result<()> {
     let proposer = LightAccount::<CompressedAgentIdentity>::new_mut(
         &crate::ID,
         &proposer_account_meta,
         proposer_identity,
     )?;
 
-    // Pass-through party identity (unchanged)
     let party_id = LightAccount::<CompressedAgentIdentity>::new_mut(
         &crate::ID,
         &party_identity_account_meta,
         party_identity,
     )?;
 
-    // Mutate agreement (increment parties_added)
     let mut agreement = LightAccount::<CompressedAgreement>::new_mut(
         &crate::ID,
         &agreement_account_meta,
@@ -110,7 +121,6 @@ pub fn handler<'info>(
     )?;
     agreement.parties_added += 1;
 
-    // Create new party
     let mut party = LightAccount::<CompressedAgreementParty>::new_init(
         &crate::ID,
         Some(party_address),
@@ -122,6 +132,29 @@ pub fn handler<'info>(
     party.signed = false;
     party.signed_at = 0;
 
+    invoke_cpi(
+        proof,
+        proposer,
+        party_id,
+        agreement,
+        party,
+        party_address_tree_info,
+        party_address_seed,
+        light_cpi_accounts,
+    )
+}
+
+#[inline(never)]
+fn invoke_cpi<'info>(
+    proof: ValidityProof,
+    proposer: LightAccount<CompressedAgentIdentity>,
+    party_id: LightAccount<CompressedAgentIdentity>,
+    agreement: LightAccount<CompressedAgreement>,
+    party: LightAccount<CompressedAgreementParty>,
+    party_address_tree_info: PackedAddressTreeInfo,
+    party_address_seed: light_sdk::address::AddressSeed,
+    light_cpi_accounts: CpiAccounts<'_, 'info>,
+) -> Result<()> {
     LightSystemProgramCpi::new_cpi(LIGHT_CPI_SIGNER, proof)
         .with_light_account(proposer)?
         .with_light_account(party_id)?

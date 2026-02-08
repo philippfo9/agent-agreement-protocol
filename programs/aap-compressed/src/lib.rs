@@ -9,7 +9,8 @@ pub mod errors;
 pub mod instructions;
 pub mod state;
 
-// Re-export instruction account structs at crate root (required by Anchor 0.31.x #[program] macro)
+// Re-export instruction module contents at crate root (required by Anchor 0.31.x #[program] macro)
+#[allow(ambiguous_glob_reexports)]
 pub use instructions::register_agent::*;
 pub use instructions::update_delegation::*;
 pub use instructions::register_sub_agent::*;

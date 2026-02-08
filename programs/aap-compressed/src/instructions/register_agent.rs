@@ -6,7 +6,6 @@ use light_sdk::{
     instruction::{PackedAddressTreeInfo, ValidityProof},
 };
 use light_sdk::cpi::{LightCpiInstruction, InvokeLightSystemProgram};
-use light_sdk::constants::ADDRESS_TREE_V2;
 
 use crate::errors::AapError;
 use crate::state::{CompressedAgentIdentity, CompressedDelegationScope};
@@ -45,13 +44,10 @@ pub fn handler<'info>(
         crate::LIGHT_CPI_SIGNER,
     );
 
-    // Validate address tree
+    // Resolve address tree pubkey (validated by Light system program CPI)
     let address_tree_pubkey = address_tree_info
         .get_tree_pubkey(&light_cpi_accounts)
         .map_err(|_| ErrorCode::AccountNotEnoughKeys)?;
-    if address_tree_pubkey.to_bytes() != ADDRESS_TREE_V2 {
-        return Err(AapError::InvalidAddressTree.into());
-    }
 
     // Derive compressed address: seeds = ["agent", agent_key]
     let (address, address_seed) = derive_address(
