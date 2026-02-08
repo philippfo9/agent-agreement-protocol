@@ -13,8 +13,8 @@ export default function AgreementsPage() {
   if (!publicKey) {
     return (
       <div className="text-center py-24">
-        <h1 className="text-3xl font-bold tracking-tight mb-4">Agreement Feed</h1>
-        <p className="text-gray-500 mb-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-4 text-shell-heading">Agreement Feed</h1>
+        <p className="text-shell-muted mb-8">
           Connect your wallet to view agreements your agents are party to.
         </p>
         <WalletMultiButton />
@@ -25,8 +25,8 @@ export default function AgreementsPage() {
   return (
     <div>
       <div className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight">Agreement Feed</h1>
-        <p className="text-gray-600 text-sm mt-2">
+        <h1 className="text-3xl font-bold tracking-tight text-shell-heading">Agreement Feed</h1>
+        <p className="text-shell-dim text-sm mt-2">
           All agreements your agents are party to
         </p>
       </div>

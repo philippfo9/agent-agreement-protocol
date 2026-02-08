@@ -71,30 +71,30 @@ export default function AgreementDetailPage() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold tracking-tight">Agreement</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-shell-heading">Agreement</h1>
             <StatusBadge status={agreement.status} />
           </div>
-          <p className="text-gray-600 font-mono text-sm">{idHex}</p>
+          <p className="text-shell-dim font-mono text-sm">{idHex}</p>
         </div>
         <div className="dark-card p-10 text-center">
           <div className="text-5xl mb-6">🔒</div>
           <h2 className="text-xl font-bold text-amber-400 mb-3">Private Agreement</h2>
-          <p className="text-gray-500 text-sm max-w-md mx-auto leading-relaxed">
+          <p className="text-shell-muted text-sm max-w-md mx-auto leading-relaxed">
             This agreement is encrypted and only visible to its parties.
             Terms, party details, and escrow information are not publicly accessible.
           </p>
           <div className="mt-8 grid grid-cols-3 gap-6 text-sm max-w-sm mx-auto">
             <div>
-              <div className="text-gray-600 text-xs mb-1">Type</div>
-              <div className="text-gray-200">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</div>
+              <div className="text-shell-dim text-xs mb-1">Type</div>
+              <div className="text-shell-fg">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</div>
             </div>
             <div>
-              <div className="text-gray-600 text-xs mb-1">Parties</div>
-              <div className="text-gray-200">{agreement.numParties}</div>
+              <div className="text-shell-dim text-xs mb-1">Parties</div>
+              <div className="text-shell-fg">{agreement.numParties}</div>
             </div>
             <div>
-              <div className="text-gray-600 text-xs mb-1">Created</div>
-              <div className="text-gray-200">{formatTimestamp(agreement.createdAt)}</div>
+              <div className="text-shell-dim text-xs mb-1">Created</div>
+              <div className="text-shell-fg">{formatTimestamp(agreement.createdAt)}</div>
             </div>
           </div>
         </div>
@@ -107,13 +107,13 @@ export default function AgreementDetailPage() {
       {/* Header */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl font-bold tracking-tight">Agreement</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-shell-heading">Agreement</h1>
           <StatusBadge status={agreement.status} />
         </div>
-        <p className="text-gray-600 font-mono text-sm">{idHex}</p>
-        <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
+        <p className="text-shell-dim font-mono text-sm">{idHex}</p>
+        <div className="flex items-center gap-2 mt-2 text-xs text-shell-dim">
           <span className="font-medium">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</span>
-          <span className="text-gray-700">·</span>
+          <span>·</span>
           <span className={isPrivate ? "text-amber-500" : ""}>
             {isPrivate ? "🔒 Private" : "🌐 Public"}
           </span>
@@ -122,7 +122,7 @@ export default function AgreementDetailPage() {
 
       {/* Timeline — numbered steps */}
       <div className="dark-card p-8 mb-8">
-        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Lifecycle</h2>
+        <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Lifecycle</h2>
         {isCancelled ? (
           <div className="text-center text-red-400 text-sm py-3 bg-red-500/5 rounded-lg border border-red-500/10">
             Agreement was cancelled
@@ -134,17 +134,17 @@ export default function AgreementDetailPage() {
               return (
                 <div key={step.status} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <span className={`text-2xl font-mono font-bold mb-2 ${reached ? "text-accent" : "text-white/10"}`}>
+                    <span className={`text-2xl font-mono font-bold mb-2 ${reached ? "text-accent" : "text-step-color"}`}>
                       {step.number}
                     </span>
-                    <span className={`text-xs font-medium ${reached ? "text-accent" : "text-gray-600"}`}>
+                    <span className={`text-xs font-medium ${reached ? "text-accent" : "text-shell-dim"}`}>
                       {step.label}
                     </span>
                   </div>
                   {i < TIMELINE_STEPS.length - 1 ? (
                     <div
                       className={`flex-1 h-px mx-4 ${
-                        currentStep > step.status ? "bg-accent/50" : "bg-white/[0.06]"
+                        currentStep > step.status ? "bg-accent/50" : "bg-shell-border"
                       }`}
                     />
                   ) : null}
@@ -257,22 +257,22 @@ export default function AgreementDetailPage() {
 
       {/* Metadata — dark card */}
       <div className="dark-card p-8">
-        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Details</h2>
+        <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Details</h2>
         <div className="grid grid-cols-2 gap-6 text-sm">
           <div>
-            <div className="text-gray-600 text-xs mb-1">Created</div>
-            <div className="text-gray-300">{formatTimestamp(agreement.createdAt)}</div>
+            <div className="text-shell-dim text-xs mb-1">Created</div>
+            <div className="text-shell-fg">{formatTimestamp(agreement.createdAt)}</div>
           </div>
           <div>
-            <div className="text-gray-600 text-xs mb-1">Expires</div>
-            <div className="text-gray-300">
+            <div className="text-shell-dim text-xs mb-1">Expires</div>
+            <div className="text-shell-fg">
               {agreement.expiresAt.toNumber() > 0
                 ? formatTimestamp(agreement.expiresAt)
                 : "Never"}
             </div>
           </div>
           <div>
-            <div className="text-gray-600 text-xs mb-1">Proposer</div>
+            <div className="text-shell-dim text-xs mb-1">Proposer</div>
             <Link
               href={`/agent/${agreement.proposer.toBase58()}`}
               className="text-accent hover:text-accent-hover font-mono text-xs"
@@ -281,8 +281,8 @@ export default function AgreementDetailPage() {
             </Link>
           </div>
           <div>
-            <div className="text-gray-600 text-xs mb-1">Agreement PDA</div>
-            <div className="font-mono text-gray-500 text-xs break-all">
+            <div className="text-shell-dim text-xs mb-1">Agreement PDA</div>
+            <div className="font-mono text-shell-muted text-xs break-all">
               {pdaStr}
             </div>
           </div>

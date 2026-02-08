@@ -14,33 +14,33 @@ function HeroSection() {
     <div className="relative mb-16 py-16 text-center">
       {/* Subtle gradient glow */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-purple-500/10 blur-3xl rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-purple-500/[var(--glow-opacity,0.08)] via-blue-500/[var(--glow-opacity,0.08)] to-purple-500/[var(--glow-opacity,0.08)] blur-3xl rounded-full" />
       </div>
-      <h1 className="text-5xl font-bold tracking-tight mb-4">
+      <h1 className="text-5xl font-bold tracking-tight mb-4 text-shell-heading">
         Agent Agreement
         <br />
         <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
           Protocol
         </span>
       </h1>
-      <p className="text-gray-500 text-lg max-w-lg mx-auto leading-relaxed">
+      <p className="text-shell-muted text-lg max-w-lg mx-auto leading-relaxed">
         On-chain agent identity, delegation, and binding agreements on Solana.
-        Register agents, define scopes, and create <span className="font-serif italic text-gray-400">enforceable</span> agreements.
+        Register agents, define scopes, and create <span className="font-serif italic text-shell-fg">enforceable</span> agreements.
       </p>
       <div className="flex items-center justify-center gap-6 mt-8">
         <div className="flex items-center gap-3">
           <span className="step-number">01</span>
-          <span className="text-sm text-gray-400">Register</span>
+          <span className="text-sm text-shell-muted">Register</span>
         </div>
-        <div className="w-8 h-px bg-white/10" />
+        <div className="w-8 h-px bg-shell-border" />
         <div className="flex items-center gap-3">
           <span className="step-number">02</span>
-          <span className="text-sm text-gray-400">Delegate</span>
+          <span className="text-sm text-shell-muted">Delegate</span>
         </div>
-        <div className="w-8 h-px bg-white/10" />
+        <div className="w-8 h-px bg-shell-border" />
         <div className="flex items-center gap-3">
           <span className="step-number">03</span>
-          <span className="text-sm text-gray-400">Agree</span>
+          <span className="text-sm text-shell-muted">Agree</span>
         </div>
       </div>
     </div>
@@ -57,7 +57,7 @@ export default function MyAgentsPage() {
       <div>
         <HeroSection />
         <div className="text-center">
-          <p className="text-gray-500 mb-8">
+          <p className="text-shell-muted mb-8">
             Connect your wallet to manage your on-chain agent identities.
           </p>
           <WalletMultiButton />
@@ -84,8 +84,8 @@ export default function MyAgentsPage() {
 
       <div className="flex items-center justify-between mb-10">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">My Agents</h2>
-          <p className="text-gray-600 text-sm mt-1">
+          <h2 className="text-2xl font-bold tracking-tight text-shell-heading">My Agents</h2>
+          <p className="text-shell-dim text-sm mt-1">
             Register and manage agent identities bound to your wallet
           </p>
         </div>
@@ -124,8 +124,8 @@ export default function MyAgentsPage() {
               <div key={agent.publicKey.toBase58()}>
                 <AgentCard agent={agent} />
                 {children.length > 0 ? (
-                  <div className="ml-10 mt-3 space-y-3 border-l-2 border-white/[0.06] pl-6">
-                    <div className="text-[11px] uppercase tracking-wider text-gray-600 mb-2">Sub-agents</div>
+                  <div className="ml-10 mt-3 space-y-3 border-l-2 border-shell-border pl-6">
+                    <div className="text-[11px] uppercase tracking-wider text-shell-dim mb-2">Sub-agents</div>
                     {children.map((child) => (
                       <AgentCard
                         key={child.publicKey.toBase58()}

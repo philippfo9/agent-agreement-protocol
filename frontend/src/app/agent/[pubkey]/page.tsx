@@ -147,31 +147,31 @@ export default function AgentProfilePage() {
 
       {/* Delegation Scope */}
       <div className="dark-card p-8 mb-8">
-        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Delegation Scope</h2>
+        <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Delegation Scope</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
           <div>
-            <div className="text-gray-600 text-xs mb-1">Can Sign</div>
-            <div className={agent.scope.canSignAgreements ? "text-emerald-400 font-medium" : "text-red-400"}>
+            <div className="text-shell-dim text-xs mb-1">Can Sign</div>
+            <div className={agent.scope.canSignAgreements ? "text-emerald-500 font-medium" : "text-red-400"}>
               {agent.scope.canSignAgreements ? "✓ Yes" : "✗ No"}
             </div>
           </div>
           <div>
-            <div className="text-gray-600 text-xs mb-1">Can Commit Funds</div>
-            <div className={agent.scope.canCommitFunds ? "text-emerald-400 font-medium" : "text-red-400"}>
+            <div className="text-shell-dim text-xs mb-1">Can Commit Funds</div>
+            <div className={agent.scope.canCommitFunds ? "text-emerald-500 font-medium" : "text-red-400"}>
               {agent.scope.canCommitFunds ? "✓ Yes" : "✗ No"}
             </div>
           </div>
           <div>
-            <div className="text-gray-600 text-xs mb-1">Max Commit</div>
-            <div className="text-gray-300">
+            <div className="text-shell-dim text-xs mb-1">Max Commit</div>
+            <div className="text-shell-fg">
               {agent.scope.maxCommitLamports.toNumber() === 0
                 ? "Unlimited"
                 : `${lamportsToSol(agent.scope.maxCommitLamports)} SOL`}
             </div>
           </div>
           <div>
-            <div className="text-gray-600 text-xs mb-1">Expires</div>
-            <div className={expired ? "text-red-400" : "text-gray-300"}>
+            <div className="text-shell-dim text-xs mb-1">Expires</div>
+            <div className={expired ? "text-red-400" : "text-shell-fg"}>
               {formatTimestamp(agent.scope.expiresAt)}
             </div>
           </div>
@@ -180,20 +180,20 @@ export default function AgentProfilePage() {
 
       {/* Stats Grid */}
       <div className="dark-card p-8 mb-8">
-        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Agreement Stats</h2>
+        <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Agreement Stats</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
           {[
-            { label: "Proposed", value: proposed, color: "text-amber-400" },
-            { label: "Active", value: active, color: "text-emerald-400" },
-            { label: "Fulfilled", value: fulfilled, color: "text-blue-400" },
-            { label: "Cancelled", value: cancelled, color: "text-gray-500" },
-            { label: "Escrow Vol.", value: lamportsToSol(totalEscrow), color: "text-gray-200", suffix: "SOL" },
+            { label: "Proposed", value: proposed, color: "text-amber-500" },
+            { label: "Active", value: active, color: "text-emerald-500" },
+            { label: "Fulfilled", value: fulfilled, color: "text-blue-500" },
+            { label: "Cancelled", value: cancelled, color: "text-shell-muted" },
+            { label: "Escrow Vol.", value: lamportsToSol(totalEscrow), color: "text-shell-fg", suffix: "SOL" },
             { label: "Counterparties", value: counterpartySet.size, color: "text-accent" },
           ].map((stat) => (
             <div key={stat.label}>
-              <div className="text-gray-600 text-xs mb-2">{stat.label}</div>
+              <div className="text-shell-dim text-xs mb-2">{stat.label}</div>
               <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
-              {stat.suffix ? <div className="text-gray-600 text-xs mt-0.5">{stat.suffix}</div> : null}
+              {stat.suffix ? <div className="text-shell-dim text-xs mt-0.5">{stat.suffix}</div> : null}
             </div>
           ))}
         </div>
@@ -201,7 +201,7 @@ export default function AgentProfilePage() {
 
       {/* Agreements List */}
       <div className="dark-card p-8">
-        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">
+        <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">
           Public Agreements ({publicAgreements?.length ?? 0})
         </h2>
         {privateCount > 0 ? (
@@ -210,7 +210,7 @@ export default function AgentProfilePage() {
           </div>
         ) : null}
         {!publicAgreements || publicAgreements.length === 0 ? (
-          <div className="text-center text-gray-600 py-12 text-sm">
+          <div className="text-center text-shell-dim py-12 text-sm">
             No public agreements found for this agent
           </div>
         ) : (
@@ -222,39 +222,39 @@ export default function AgentProfilePage() {
                 <Link
                   key={agreement.publicKey.toBase58()}
                   href={`/agreement/${agreement.publicKey.toBase58()}`}
-                  className="block bg-white/[0.03] rounded-lg p-5 hover:bg-white/[0.06] transition-all duration-200 border border-white/[0.04]"
+                  className="block bg-shell-hover rounded-lg p-5 hover:bg-shell-hover-strong transition-all duration-200 border border-divider"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <StatusBadge status={acc.status} />
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-shell-dim">
                         {AGREEMENT_TYPE_LABELS[acc.agreementType] ?? "Unknown"}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-shell-dim">
                       {formatTimestamp(acc.createdAt)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3">
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-shell-muted text-xs">
                         Proposer:{" "}
                         <span className="font-mono text-accent">
                           {shortenPubkey(acc.proposer)}
                         </span>
                       </span>
-                      <span className="text-gray-600 text-xs">
+                      <span className="text-shell-dim text-xs">
                         {acc.numSigned}/{acc.numParties} signed
                       </span>
                     </div>
                     {acc.escrowTotal.toNumber() > 0 ? (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-shell-muted">
                         {lamportsToSol(acc.escrowTotal)} SOL
                       </span>
                     ) : null}
                   </div>
                   {termsUri ? (
-                    <div className="mt-2 text-xs text-gray-600 font-mono truncate">
+                    <div className="mt-2 text-xs text-shell-dim font-mono truncate">
                       {termsUri}
                     </div>
                   ) : null}

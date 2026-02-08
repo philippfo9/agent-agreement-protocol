@@ -77,8 +77,8 @@ export default function ExplorePage() {
   return (
     <div>
       <div className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight">Explore Agreements</h1>
-        <p className="text-gray-600 text-sm mt-2">
+        <h1 className="text-3xl font-bold tracking-tight text-shell-heading">Explore Agreements</h1>
+        <p className="text-shell-dim text-sm mt-2">
           Browse all public agreements on the protocol
         </p>
       </div>
@@ -92,7 +92,7 @@ export default function ExplorePage() {
               setStatusFilter(Number(e.target.value));
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-surface-dark border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-400 focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-accent"
           >
             {STATUS_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -104,7 +104,7 @@ export default function ExplorePage() {
               setTypeFilter(Number(e.target.value));
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-surface-dark border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-400 focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-accent"
           >
             {TYPE_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -118,14 +118,14 @@ export default function ExplorePage() {
               setSearchPubkey(e.target.value);
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-surface-dark border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-400 placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-accent flex-1 min-w-[200px]"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-input-text placeholder-shell-dim focus:outline-none focus:ring-1 focus:ring-accent flex-1 min-w-[200px]"
           />
         </div>
       </div>
 
       {/* Results count */}
       {agreements ? (
-        <div className="text-xs text-gray-600 mb-6 uppercase tracking-wider">
+        <div className="text-xs text-shell-dim mb-6 uppercase tracking-wider">
           {filtered.length} agreement{filtered.length !== 1 ? "s" : ""} found
         </div>
       ) : null}
@@ -155,7 +155,7 @@ export default function ExplorePage() {
             <div className="text-center mt-10">
               <button
                 onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                className="bg-white/[0.04] hover:bg-white/[0.08] text-gray-400 px-8 py-2.5 rounded-lg text-sm transition-all duration-200 border border-white/[0.06]"
+                className="bg-shell-hover hover:bg-shell-hover-strong text-shell-muted px-8 py-2.5 rounded-lg text-sm transition-all duration-200 border border-shell-border"
               >
                 Load More ({filtered.length - visibleCount} remaining)
               </button>
