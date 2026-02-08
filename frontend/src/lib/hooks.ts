@@ -7,7 +7,9 @@ import {
   fetchAllAgentsByAuthority,
   fetchAgentIdentity,
   fetchAllAgreementParties,
+  fetchAllPartiesForAgreement,
   fetchAgreement,
+  fetchAllAgreements,
 } from "./program";
 import { getAgentIdentityPDA } from "./pda";
 import type {
@@ -107,6 +109,51 @@ export function useMyAgreements() {
 
       return results
         .filter((r): r is AgreementAccount => r !== null)
+        .toSorted(
+          (a, b) =>
+            b.account.createdAt.toNumber() - a.account.createdAt.toNumber()
+        );
+    },
+    { refreshInterval: REFRESH_INTERVAL }
+  );
+}
+
+export function useAgreementDetail(pdaStr: string) {
+  const { connection } = useConnection();
+
+  return useSWR(
+    pdaStr ? `agreement-detail:${pdaStr}` : null,
+    async () => {
+      const pda = new PublicKey(pdaStr);
+      const [account, parties] = await Promise.all([
+        fetchAgreement(connection, pda),
+        fetchAllPartiesForAgreement(connection, pda),
+      ]);
+      if (!account) return null;
+
+      // Fetch agent identities for all parties in parallel
+      const partyIdentities = await Promise.all(
+        parties.map(async (p) => {
+          const identity = await fetchAgentIdentity(connection, p.account.agentIdentity);
+          return { party: p, identity };
+        })
+      );
+
+      return { agreement: account, pda, parties: partyIdentities };
+    },
+    { refreshInterval: REFRESH_INTERVAL }
+  );
+}
+
+export function usePublicAgreements() {
+  const { connection } = useConnection();
+
+  return useSWR(
+    "public-agreements",
+    async (): Promise<AgreementAccount[]> => {
+      const all = await fetchAllAgreements(connection);
+      return all
+        .filter((a) => a.account.visibility === 0)
         .toSorted(
           (a, b) =>
             b.account.createdAt.toNumber() - a.account.createdAt.toNumber()

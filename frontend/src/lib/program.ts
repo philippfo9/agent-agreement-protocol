@@ -104,3 +104,23 @@ export async function fetchAllAgreements(
     return [];
   }
 }
+
+export async function fetchAllPartiesForAgreement(
+  connection: Connection,
+  agreementPda: PublicKey
+): Promise<AgreementPartyAccount[]> {
+  const program = getProgram(connection);
+  try {
+    const accounts = await (program.account as any).agreementParty.all([
+      {
+        memcmp: {
+          offset: 8, // discriminator, then agreement pubkey
+          bytes: agreementPda.toBase58(),
+        },
+      },
+    ]);
+    return accounts as AgreementPartyAccount[];
+  } catch {
+    return [];
+  }
+}
