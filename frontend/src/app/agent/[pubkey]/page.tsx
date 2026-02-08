@@ -4,6 +4,10 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useAgentProfile, useAgentAgreements } from "@/lib/hooks";
 import { ProfileSkeleton, EmptyState } from "@/components/Loading";
+import { StatusBadge } from "@/components/StatusBadge";
+import {
+  AGREEMENT_TYPE_LABELS,
+} from "@/lib/constants";
 import {
   shortenPubkey,
   formatTimestamp,
@@ -11,6 +15,7 @@ import {
   isExpired,
   isPubkeyDefault,
   bytesToHex,
+  bytesToString,
 } from "@/lib/utils";
 
 export default function AgentProfilePage() {
@@ -35,13 +40,29 @@ export default function AgentProfilePage() {
   const hasParent = !isPubkeyDefault(agent.parent);
 
   // Derived stats — computed during render
-  const fulfilled = agreements?.filter((a) => a.account.status === 2).length ?? 0;
+  const proposed = agreements?.filter((a) => a.account.status === 0).length ?? 0;
   const active = agreements?.filter((a) => a.account.status === 1).length ?? 0;
+  const fulfilled = agreements?.filter((a) => a.account.status === 2).length ?? 0;
   const cancelled = agreements?.filter((a) => a.account.status === 5).length ?? 0;
   const totalEscrow = agreements?.reduce(
     (sum, a) => sum + a.account.escrowTotal.toNumber(),
     0
   ) ?? 0;
+
+  // Unique counterparties: count unique proposer keys that aren't this agent's PDA
+  const counterpartySet = new Set<string>();
+  if (agreements) {
+    for (const a of agreements) {
+      const proposerKey = a.account.proposer.toBase58();
+      if (proposerKey !== agentPDA.toBase58()) {
+        counterpartySet.add(proposerKey);
+      }
+    }
+  }
+
+  const sortedAgreements = agreements?.toSorted(
+    (a, b) => b.account.createdAt.toNumber() - a.account.createdAt.toNumber()
+  );
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -101,7 +122,7 @@ export default function AgentProfilePage() {
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Created</div>
+            <div className="text-gray-500 text-xs mb-1">Member Since</div>
             <div>{formatTimestamp(agent.createdAt)}</div>
           </div>
         </div>
@@ -142,8 +163,12 @@ export default function AgentProfilePage() {
 
       {/* Agreement Stats */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-medium mb-4">Agreement History</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+        <h2 className="text-lg font-medium mb-4">Agreement Stats</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
+          <div>
+            <div className="text-gray-500 text-xs mb-1">Proposed</div>
+            <div className="text-2xl font-bold text-yellow-400">{proposed}</div>
+          </div>
           <div>
             <div className="text-gray-500 text-xs mb-1">Active</div>
             <div className="text-2xl font-bold text-green-400">{active}</div>
@@ -157,10 +182,81 @@ export default function AgentProfilePage() {
             <div className="text-2xl font-bold text-gray-400">{cancelled}</div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Total Escrow Volume</div>
-            <div className="text-2xl font-bold">{lamportsToSol(totalEscrow)} SOL</div>
+            <div className="text-gray-500 text-xs mb-1">Escrow Volume</div>
+            <div className="text-2xl font-bold">{lamportsToSol(totalEscrow)}</div>
+            <div className="text-gray-500 text-xs">SOL</div>
+          </div>
+          <div>
+            <div className="text-gray-500 text-xs mb-1">Counterparties</div>
+            <div className="text-2xl font-bold text-purple-400">{counterpartySet.size}</div>
           </div>
         </div>
+      </div>
+
+      {/* Agreements List */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+        <h2 className="text-lg font-medium mb-4">
+          Agreements ({agreements?.length ?? 0})
+        </h2>
+        {!sortedAgreements || sortedAgreements.length === 0 ? (
+          <div className="text-center text-gray-500 py-8 text-sm">
+            No agreements found for this agent
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedAgreements.map((agreement) => {
+              const acc = agreement.account;
+              const isPrivate = acc.visibility === 1;
+              const termsUri = bytesToString(acc.termsUri);
+              return (
+                <Link
+                  key={agreement.publicKey.toBase58()}
+                  href={`/agreement/${agreement.publicKey.toBase58()}`}
+                  className="block bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800 transition-colors"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={acc.status} />
+                      <span className="text-xs text-gray-500">
+                        {AGREEMENT_TYPE_LABELS[acc.agreementType] || "Unknown"}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {formatTimestamp(acc.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-400 text-xs">
+                        Proposer:{" "}
+                        <span className="font-mono text-purple-400">
+                          {shortenPubkey(acc.proposer)}
+                        </span>
+                      </span>
+                      <span className="text-gray-500 text-xs">
+                        {acc.numSigned}/{acc.numParties} signed
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      {acc.escrowTotal.toNumber() > 0 ? (
+                        <span className="text-xs text-gray-400">
+                          {lamportsToSol(acc.escrowTotal)} SOL
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  {isPrivate ? (
+                    <div className="mt-2 text-xs text-yellow-400/60">🔒 Encrypted terms</div>
+                  ) : termsUri ? (
+                    <div className="mt-2 text-xs text-gray-500 font-mono truncate">
+                      {termsUri}
+                    </div>
+                  ) : null}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
