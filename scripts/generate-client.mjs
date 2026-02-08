@@ -10,7 +10,7 @@
 
 import { createFromRoot } from 'codama';
 import { rootNodeFromAnchor } from '@codama/nodes-from-anchor';
-import { renderJavaScriptVisitor } from '@codama/renderers-js';
+import { renderVisitor } from '@codama/renderers-js';
 import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -42,7 +42,7 @@ for (const program of programs) {
   const codama = createFromRoot(rootNode);
   
   const clientDir = join(outputDir, program.name);
-  codama.accept(renderJavaScriptVisitor(clientDir));
+  codama.accept(renderVisitor(clientDir));
   
   console.log(`✅ Generated TypeScript client at ${clientDir}`);
 }
