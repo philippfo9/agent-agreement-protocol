@@ -86,7 +86,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
             type="checkbox"
             checked={canSign}
             onChange={(e) => setCanSign(e.target.checked)}
-            className="rounded bg-input border-input-border text-accent focus:ring-accent"
+            className="rounded bg-input border-input-border text-white focus:ring-white/20"
           />
           <span className="text-sm text-shell-fg group-hover:text-shell-heading transition-colors">Can sign agreements</span>
         </label>
@@ -95,7 +95,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
             type="checkbox"
             checked={canCommitFunds}
             onChange={(e) => setCanCommitFunds(e.target.checked)}
-            className="rounded bg-input border-input-border text-accent focus:ring-accent"
+            className="rounded bg-input border-input-border text-white focus:ring-white/20"
           />
           <span className="text-sm text-shell-fg group-hover:text-shell-heading transition-colors">Can commit funds</span>
         </label>
@@ -111,7 +111,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           min="0"
           value={maxCommit}
           onChange={(e) => setMaxCommit(e.target.value)}
-          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
+          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
         />
       </div>
 
@@ -124,12 +124,12 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           min="0"
           value={expiresIn}
           onChange={(e) => setExpiresIn(e.target.value)}
-          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
+          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
         />
       </div>
 
       {error ? (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3.5 text-sm text-red-400">
+        <div className="bg-white/5 border border-white/10 rounded-lg p-3.5 text-sm text-gray-400">
           {error}
         </div>
       ) : null}
@@ -137,7 +137,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
       <button
         type="submit"
         disabled={isPending || !wallet.publicKey}
-        className="w-full bg-accent hover:bg-accent-hover disabled:bg-shell-skeleton disabled:text-shell-dim text-white font-medium py-3 px-4 rounded-lg transition-all duration-200"
+        className="w-full bg-white hover:bg-gray-200 disabled:bg-shell-skeleton disabled:text-shell-dim text-black font-medium py-3 px-4 rounded-lg transition-all duration-200"
       >
         {isPending ? "Registering..." : "Register Agent"}
       </button>

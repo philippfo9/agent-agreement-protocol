@@ -40,9 +40,9 @@ const config: Config = {
           border: "#e5e5e5",
         },
         accent: {
-          DEFAULT: "#8b5cf6",
-          hover: "#7c3aed",
-          muted: "rgba(139, 92, 246, 0.1)",
+          DEFAULT: "#ffffff",
+          hover: "#e5e5e5",
+          muted: "rgba(255, 255, 255, 0.08)",
         },
       },
       fontFamily: {

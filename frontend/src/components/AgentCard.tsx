@@ -5,12 +5,12 @@ import { AgentIdentityAccount } from "@/lib/types";
 import { shortenPubkey, formatTimestamp, lamportsToSol, isExpired, isPubkeyDefault } from "@/lib/utils";
 
 function PubkeyGradient({ pubkey }: { pubkey: string }) {
-  const h1 = (pubkey.charCodeAt(0) * 7 + pubkey.charCodeAt(1) * 13) % 360;
-  const h2 = (h1 + 60) % 360;
+  const l1 = 20 + ((pubkey.charCodeAt(0) * 7 + pubkey.charCodeAt(1) * 13) % 30);
+  const l2 = l1 + 15;
   return (
     <div
       className="w-10 h-10 rounded-lg flex-shrink-0"
-      style={{ background: `linear-gradient(135deg, hsl(${h1}, 60%, 50%), hsl(${h2}, 60%, 40%))` }}
+      style={{ background: `linear-gradient(135deg, hsl(0, 0%, ${l1}%), hsl(0, 0%, ${l2}%))` }}
     />
   );
 }
@@ -30,7 +30,7 @@ export function AgentCard({ agent }: { agent: AgentIdentityAccount }) {
         <PubkeyGradient pubkey={agentKeyStr} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2.5">
-            <span className="text-sm font-mono text-accent font-medium">
+            <span className="text-sm font-mono text-white font-medium">
               {shortenPubkey(account.agentKey)}
             </span>
             {hasParent ? (
@@ -46,8 +46,8 @@ export function AgentCard({ agent }: { agent: AgentIdentityAccount }) {
         <span
           className={`text-[11px] font-medium tracking-wide uppercase px-2.5 py-1 rounded-full ${
             expired
-              ? "bg-red-500/10 text-red-400 border border-red-500/20"
-              : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              ? "bg-white/5 text-gray-500 border border-white/10"
+              : "bg-white/10 text-gray-300 border border-white/15"
           }`}
         >
           {expired ? "Expired" : "Active"}
@@ -57,13 +57,13 @@ export function AgentCard({ agent }: { agent: AgentIdentityAccount }) {
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
           <div className="text-shell-dim text-xs mb-1">Can Sign</div>
-          <div className={account.scope.canSignAgreements ? "text-emerald-500" : "text-shell-muted"}>
+          <div className={account.scope.canSignAgreements ? "text-white" : "text-shell-muted"}>
             {account.scope.canSignAgreements ? "✓ Yes" : "✗ No"}
           </div>
         </div>
         <div>
           <div className="text-shell-dim text-xs mb-1">Can Commit Funds</div>
-          <div className={account.scope.canCommitFunds ? "text-emerald-500" : "text-shell-muted"}>
+          <div className={account.scope.canCommitFunds ? "text-white" : "text-shell-muted"}>
             {account.scope.canCommitFunds ? "✓ Yes" : "✗ No"}
           </div>
         </div>
@@ -77,7 +77,7 @@ export function AgentCard({ agent }: { agent: AgentIdentityAccount }) {
         </div>
         <div>
           <div className="text-shell-dim text-xs mb-1">Expires</div>
-          <div className={expired ? "text-red-400" : "text-shell-fg"}>
+          <div className={expired ? "text-gray-500" : "text-shell-fg"}>
             {formatTimestamp(account.scope.expiresAt)}
           </div>
         </div>

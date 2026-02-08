@@ -39,9 +39,9 @@ const TYPE_FILTERS = [
 function WindowDots() {
   return (
     <div className="flex items-center gap-1.5 mb-3">
-      <div className="w-2 h-2 rounded-full bg-[#ff5f57]" />
-      <div className="w-2 h-2 rounded-full bg-[#febc2e]" />
-      <div className="w-2 h-2 rounded-full bg-[#28c840]" />
+      <div className="w-2 h-2 rounded-full bg-[#555]" />
+      <div className="w-2 h-2 rounded-full bg-[#444]" />
+      <div className="w-2 h-2 rounded-full bg-[#333]" />
     </div>
   );
 }
@@ -92,7 +92,7 @@ export default function ExplorePage() {
               setStatusFilter(Number(e.target.value));
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-white/20"
           >
             {STATUS_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -104,7 +104,7 @@ export default function ExplorePage() {
               setTypeFilter(Number(e.target.value));
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-white/20"
           >
             {TYPE_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>{f.label}</option>
@@ -118,7 +118,7 @@ export default function ExplorePage() {
               setSearchPubkey(e.target.value);
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-input-text placeholder-shell-dim focus:outline-none focus:ring-1 focus:ring-accent flex-1 min-w-[200px]"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-input-text placeholder-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 flex-1 min-w-[200px]"
           />
         </div>
       </div>
@@ -195,7 +195,7 @@ function ExploreCard({ agreement }: { agreement: AgreementAccount }) {
       <div className="flex items-center justify-between text-sm">
         <span className="text-gray-500 text-xs">
           Proposer:{" "}
-          <span className="font-mono text-purple-600 font-medium">
+          <span className="font-mono text-gray-600 font-medium">
             {shortenPubkey(account.proposer)}
           </span>
         </span>

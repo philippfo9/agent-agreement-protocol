@@ -34,9 +34,9 @@ function statusToStep(status: number): number {
 function WindowDots() {
   return (
     <div className="flex items-center gap-1.5 mb-6">
-      <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-      <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-      <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+      <div className="w-3 h-3 rounded-full bg-[#555]" />
+      <div className="w-3 h-3 rounded-full bg-[#444]" />
+      <div className="w-3 h-3 rounded-full bg-[#333]" />
     </div>
   );
 }
@@ -78,7 +78,7 @@ export default function AgreementDetailPage() {
         </div>
         <div className="dark-card p-10 text-center">
           <div className="text-5xl mb-6">🔒</div>
-          <h2 className="text-xl font-bold text-amber-400 mb-3">Private Agreement</h2>
+          <h2 className="text-xl font-bold text-gray-400 mb-3">Private Agreement</h2>
           <p className="text-shell-muted text-sm max-w-md mx-auto leading-relaxed">
             This agreement is encrypted and only visible to its parties.
             Terms, party details, and escrow information are not publicly accessible.
@@ -114,7 +114,7 @@ export default function AgreementDetailPage() {
         <div className="flex items-center gap-2 mt-2 text-xs text-shell-dim">
           <span className="font-medium">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</span>
           <span>·</span>
-          <span className={isPrivate ? "text-amber-500" : ""}>
+          <span className={isPrivate ? "text-gray-500" : ""}>
             {isPrivate ? "🔒 Private" : "🌐 Public"}
           </span>
         </div>
@@ -124,7 +124,7 @@ export default function AgreementDetailPage() {
       <div className="dark-card p-8 mb-8">
         <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Lifecycle</h2>
         {isCancelled ? (
-          <div className="text-center text-red-400 text-sm py-3 bg-red-500/5 rounded-lg border border-red-500/10">
+          <div className="text-center text-gray-500 text-sm py-3 bg-white/5 rounded-lg border border-white/10">
             Agreement was cancelled
           </div>
         ) : (
@@ -134,17 +134,17 @@ export default function AgreementDetailPage() {
               return (
                 <div key={step.status} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <span className={`text-2xl font-mono font-bold mb-2 ${reached ? "text-accent" : "text-step-color"}`}>
+                    <span className={`text-2xl font-mono font-bold mb-2 ${reached ? "text-white" : "text-step-color"}`}>
                       {step.number}
                     </span>
-                    <span className={`text-xs font-medium ${reached ? "text-accent" : "text-shell-dim"}`}>
+                    <span className={`text-xs font-medium ${reached ? "text-white" : "text-shell-dim"}`}>
                       {step.label}
                     </span>
                   </div>
                   {i < TIMELINE_STEPS.length - 1 ? (
                     <div
                       className={`flex-1 h-px mx-4 ${
-                        currentStep > step.status ? "bg-accent/50" : "bg-shell-border"
+                        currentStep > step.status ? "bg-white/30" : "bg-shell-border"
                       }`}
                     />
                   ) : null}
@@ -178,7 +178,7 @@ export default function AgreementDetailPage() {
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/agent/${identity ? identity.agentKey.toBase58() : party.account.agentIdentity.toBase58()}`}
-                      className="text-purple-600 hover:text-purple-500 font-mono text-sm font-medium"
+                      className="text-gray-600 hover:text-gray-500 font-mono text-sm font-medium"
                     >
                       {shortenPubkey(agentKey, 6)}
                     </Link>
@@ -194,7 +194,7 @@ export default function AgreementDetailPage() {
                     ) : null}
                     <span
                       className={
-                        party.account.signed ? "text-emerald-600 font-medium" : "text-gray-400"
+                        party.account.signed ? "text-gray-600 font-medium" : "text-gray-400"
                       }
                     >
                       {party.account.signed
@@ -225,7 +225,7 @@ export default function AgreementDetailPage() {
                   href={termsUri.startsWith("http") ? termsUri : `https://arweave.net/${termsUri}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-600 hover:text-purple-500 text-xs font-mono break-all"
+                  className="text-gray-600 hover:text-gray-500 text-xs font-mono break-all"
                 >
                   {termsUri}
                 </a>
@@ -275,7 +275,7 @@ export default function AgreementDetailPage() {
             <div className="text-shell-dim text-xs mb-1">Proposer</div>
             <Link
               href={`/agent/${agreement.proposer.toBase58()}`}
-              className="text-accent hover:text-accent-hover font-mono text-xs"
+              className="text-white hover:text-gray-300 font-mono text-xs"
             >
               {shortenPubkey(agreement.proposer, 6)}
             </Link>

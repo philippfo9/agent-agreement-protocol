@@ -20,21 +20,21 @@ export const STATUS_LABELS: Record<number, string> = {
 };
 
 export const STATUS_COLORS: Record<number, string> = {
-  0: "text-yellow-400",
-  1: "text-green-400",
-  2: "text-blue-400",
-  3: "text-red-400",
-  4: "text-orange-400",
-  5: "text-gray-400",
+  0: "text-gray-400",
+  1: "text-gray-300",
+  2: "text-gray-400",
+  3: "text-gray-500",
+  4: "text-gray-500",
+  5: "text-gray-600",
 };
 
 export const STATUS_BG_COLORS: Record<number, string> = {
-  0: "bg-yellow-400/10 border-yellow-400/30",
-  1: "bg-green-400/10 border-green-400/30",
-  2: "bg-blue-400/10 border-blue-400/30",
-  3: "bg-red-400/10 border-red-400/30",
-  4: "bg-orange-400/10 border-orange-400/30",
-  5: "bg-gray-400/10 border-gray-400/30",
+  0: "bg-white/5 border-white/10",
+  1: "bg-white/10 border-white/15",
+  2: "bg-white/8 border-white/12",
+  3: "bg-white/5 border-white/10",
+  4: "bg-white/5 border-white/10",
+  5: "bg-white/5 border-white/8",
 };
 
 export const ROLE_LABELS: Record<number, string> = {

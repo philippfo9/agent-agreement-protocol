@@ -19,12 +19,12 @@ import {
 } from "@/lib/utils";
 
 function PubkeyAvatar({ pubkey }: { pubkey: string }) {
-  const h1 = (pubkey.charCodeAt(0) * 7 + pubkey.charCodeAt(1) * 13) % 360;
-  const h2 = (h1 + 60) % 360;
+  const h1 = 20 + ((pubkey.charCodeAt(0) * 7 + pubkey.charCodeAt(1) * 13) % 30);
+  const h2 = h1 + 15;
   return (
     <div
       className="w-16 h-16 rounded-2xl flex-shrink-0"
-      style={{ background: `linear-gradient(135deg, hsl(${h1}, 60%, 50%), hsl(${h2}, 60%, 40%))` }}
+      style={{ background: `linear-gradient(135deg, hsl(0, 0%, ${h1}%), hsl(0, 0%, ${h2}%))` }}
     />
   );
 }
@@ -78,9 +78,9 @@ export default function AgentProfilePage() {
       {/* Identity Card — document style */}
       <div className="document-card p-8 mb-8">
         <div className="flex items-center gap-1.5 mb-6">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-          <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-          <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+          <div className="w-3 h-3 rounded-full bg-[#555]" />
+          <div className="w-3 h-3 rounded-full bg-[#444]" />
+          <div className="w-3 h-3 rounded-full bg-[#333]" />
         </div>
 
         <div className="flex items-start gap-5 mb-6">
@@ -91,8 +91,8 @@ export default function AgentProfilePage() {
               <span
                 className={`text-[11px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-full ${
                   expired
-                    ? "bg-red-50 text-red-500 border border-red-200"
-                    : "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                    ? "bg-gray-100 text-gray-500 border border-gray-200"
+                    : "bg-gray-50 text-gray-600 border border-gray-200"
                 }`}
               >
                 {expired ? "Expired" : "Active"}
@@ -105,7 +105,7 @@ export default function AgentProfilePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
           <div>
             <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Agent Key</div>
-            <div className="font-mono text-purple-600 break-all text-xs">
+            <div className="font-mono text-gray-600 break-all text-xs">
               {agent.agentKey.toBase58()}
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function AgentProfilePage() {
               <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Parent Agent</div>
               <Link
                 href={`/agent/${agent.parent.toBase58()}`}
-                className="font-mono text-purple-600 hover:text-purple-500 break-all text-xs"
+                className="font-mono text-gray-600 hover:text-gray-500 break-all text-xs"
               >
                 {shortenPubkey(agent.parent, 8)}
               </Link>
@@ -151,13 +151,13 @@ export default function AgentProfilePage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
           <div>
             <div className="text-shell-dim text-xs mb-1">Can Sign</div>
-            <div className={agent.scope.canSignAgreements ? "text-emerald-500 font-medium" : "text-red-400"}>
+            <div className={agent.scope.canSignAgreements ? "text-white font-medium" : "text-gray-500"}>
               {agent.scope.canSignAgreements ? "✓ Yes" : "✗ No"}
             </div>
           </div>
           <div>
             <div className="text-shell-dim text-xs mb-1">Can Commit Funds</div>
-            <div className={agent.scope.canCommitFunds ? "text-emerald-500 font-medium" : "text-red-400"}>
+            <div className={agent.scope.canCommitFunds ? "text-white font-medium" : "text-gray-500"}>
               {agent.scope.canCommitFunds ? "✓ Yes" : "✗ No"}
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function AgentProfilePage() {
           </div>
           <div>
             <div className="text-shell-dim text-xs mb-1">Expires</div>
-            <div className={expired ? "text-red-400" : "text-shell-fg"}>
+            <div className={expired ? "text-gray-500" : "text-shell-fg"}>
               {formatTimestamp(agent.scope.expiresAt)}
             </div>
           </div>
@@ -183,12 +183,12 @@ export default function AgentProfilePage() {
         <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Agreement Stats</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
           {[
-            { label: "Proposed", value: proposed, color: "text-amber-500" },
-            { label: "Active", value: active, color: "text-emerald-500" },
-            { label: "Fulfilled", value: fulfilled, color: "text-blue-500" },
+            { label: "Proposed", value: proposed, color: "text-gray-400" },
+            { label: "Active", value: active, color: "text-gray-300" },
+            { label: "Fulfilled", value: fulfilled, color: "text-gray-400" },
             { label: "Cancelled", value: cancelled, color: "text-shell-muted" },
             { label: "Escrow Vol.", value: lamportsToSol(totalEscrow), color: "text-shell-fg", suffix: "SOL" },
-            { label: "Counterparties", value: counterpartySet.size, color: "text-accent" },
+            { label: "Counterparties", value: counterpartySet.size, color: "text-white" },
           ].map((stat) => (
             <div key={stat.label}>
               <div className="text-shell-dim text-xs mb-2">{stat.label}</div>
@@ -205,7 +205,7 @@ export default function AgentProfilePage() {
           Public Agreements ({publicAgreements?.length ?? 0})
         </h2>
         {privateCount > 0 ? (
-          <div className="text-xs text-amber-400/60 mb-6">
+          <div className="text-xs text-gray-500 mb-6">
             🔒 {privateCount} private agreement{privateCount !== 1 ? "s" : ""} not shown
           </div>
         ) : null}
@@ -239,7 +239,7 @@ export default function AgentProfilePage() {
                     <div className="flex items-center gap-3">
                       <span className="text-shell-muted text-xs">
                         Proposer:{" "}
-                        <span className="font-mono text-accent">
+                        <span className="font-mono text-white">
                           {shortenPubkey(acc.proposer)}
                         </span>
                       </span>

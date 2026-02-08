@@ -6,7 +6,7 @@ export function Loading({ text = "Loading..." }: { text?: string }) {
   return (
     <div className="flex items-center justify-center py-16">
       <div className="flex items-center gap-3 text-shell-muted">
-        <div className="w-5 h-5 border-2 border-shell-border border-t-accent rounded-full animate-spin" />
+        <div className="w-5 h-5 border-2 border-shell-border border-t-white rounded-full animate-spin" />
         <span className="text-sm">{text}</span>
       </div>
     </div>

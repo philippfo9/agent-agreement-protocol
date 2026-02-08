@@ -45,7 +45,7 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-black font-bold text-sm">
               A
             </div>
             <span className="font-bold text-lg tracking-tight text-shell-heading">
@@ -62,10 +62,10 @@ export function Navbar() {
                   className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? item.danger
-                        ? "bg-red-500/10 text-red-400"
+                        ? "bg-white/10 text-gray-400"
                         : "bg-shell-hover-strong text-shell-heading"
                       : item.danger
-                      ? "text-red-400/50 hover:text-red-400 hover:bg-red-500/5"
+                      ? "text-gray-500 hover:text-gray-300 hover:bg-white/5"
                       : "text-shell-muted hover:text-shell-fg hover:bg-shell-hover"
                   }`}
                 >
@@ -80,7 +80,7 @@ export function Navbar() {
           <select
             value={network}
             onChange={(e) => setNetwork(e.target.value as NetworkName)}
-            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-shell-muted focus:outline-none focus:ring-1 focus:ring-white/20"
           >
             <option value="devnet">Devnet</option>
             <option value="mainnet">Mainnet</option>

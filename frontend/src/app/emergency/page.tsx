@@ -52,7 +52,7 @@ export default function EmergencyPage() {
   if (!publicKey) {
     return (
       <div className="text-center py-24">
-        <h1 className="text-3xl font-bold tracking-tight text-red-400 mb-4">Emergency Controls</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-400 mb-4">Emergency Controls</h1>
         <p className="text-shell-muted mb-8">
           Connect your wallet to access emergency agent controls.
         </p>
@@ -64,19 +64,19 @@ export default function EmergencyPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold tracking-tight text-red-400">Emergency Controls</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-400">Emergency Controls</h1>
         <p className="text-shell-dim text-sm mt-2">
           Immediate actions to revoke agents and cancel agreements. Use with caution.
         </p>
       </div>
 
-      <div className="dark-card border-red-500/20 p-6 mb-10">
+      <div className="dark-card border-white/10 p-6 mb-10">
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0">
             <span className="text-lg">🚨</span>
           </div>
           <div>
-            <h3 className="font-semibold text-red-400 text-sm">Danger Zone</h3>
+            <h3 className="font-semibold text-gray-400 text-sm">Danger Zone</h3>
             <p className="text-sm text-shell-muted mt-1 leading-relaxed">
               These actions are irreversible. Revoking an agent closes its PDA and returns
               rent to your wallet. Any active agreements referencing this agent will be affected.
@@ -89,8 +89,8 @@ export default function EmergencyPage() {
         <div
           className={`rounded-lg p-4 mb-8 text-sm ${
             message.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-              : "bg-red-500/10 border border-red-500/20 text-red-400"
+              ? "bg-white/5 border border-white/10 text-gray-300"
+              : "bg-white/5 border border-white/10 text-gray-500"
           }`}
         >
           {message.text}
@@ -118,14 +118,14 @@ export default function EmergencyPage() {
               >
                 <div>
                   <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-sm text-accent font-medium">
+                    <span className="font-mono text-sm text-white font-medium">
                       {shortenPubkey(agent.account.agentKey)}
                     </span>
                     <span
                       className={`text-[11px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full ${
                         expired
-                          ? "bg-red-500/10 text-red-400 border border-red-500/20"
-                          : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          ? "bg-white/5 text-gray-500 border border-white/10"
+                          : "bg-white/10 text-gray-300 border border-white/15"
                       }`}
                     >
                       {expired ? "Expired" : "Active"}
@@ -142,7 +142,7 @@ export default function EmergencyPage() {
                     });
                   }}
                   disabled={isPending}
-                  className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 disabled:bg-shell-skeleton disabled:border-shell-border disabled:text-shell-dim text-red-400 font-medium py-2.5 px-5 rounded-lg transition-all duration-200 text-sm"
+                  className="bg-white/10 hover:bg-white/15 border border-white/10 hover:border-white/20 disabled:bg-shell-skeleton disabled:border-shell-border disabled:text-shell-dim text-gray-300 font-medium py-2.5 px-5 rounded-lg transition-all duration-200 text-sm"
                 >
                   {isPending ? "Revoking..." : "Revoke Agent"}
                 </button>

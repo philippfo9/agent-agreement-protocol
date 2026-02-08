@@ -17,9 +17,9 @@ import {
 function WindowDots() {
   return (
     <div className="flex items-center gap-1.5 mb-4">
-      <div className="w-2.5 h-2.5 rounded-full bg-[#ff5f57]" />
-      <div className="w-2.5 h-2.5 rounded-full bg-[#febc2e]" />
-      <div className="w-2.5 h-2.5 rounded-full bg-[#28c840]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#555]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#444]" />
+      <div className="w-2.5 h-2.5 rounded-full bg-[#333]" />
     </div>
   );
 }
@@ -48,14 +48,14 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
           <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
             <span className="font-medium">{AGREEMENT_TYPE_LABELS[account.agreementType] ?? "Unknown"}</span>
             <span className="text-gray-300">·</span>
-            <span className={isPrivate ? "text-amber-600" : "text-gray-400"}>
+            <span className={isPrivate ? "text-gray-500" : "text-gray-400"}>
               {isPrivate ? "🔒 Private" : "Public"}
             </span>
           </div>
         </div>
         <div className="text-right">
           <div className="text-sm text-gray-700 font-medium">
-            {account.numSigned}/{account.numParties} <span className="font-serif italic text-gray-500">signed</span>
+            {account.numSigned}/{account.numParties} <span className="font-serif italic text-gray-400">signed</span>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
       <div className="grid grid-cols-2 gap-4 text-sm mb-4">
         <div>
           <div className="text-gray-400 text-xs mb-1">Proposer</div>
-          <span className="text-purple-600 font-mono text-xs font-medium">
+          <span className="text-gray-600 font-mono text-xs font-medium">
             {shortenPubkey(account.proposer)}
           </span>
         </div>
@@ -78,7 +78,7 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
       </div>
 
       {isPrivate ? (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-700">
+        <div className="bg-gray-100 border border-gray-200 rounded-lg p-3 text-xs text-gray-600">
           🔒 Encrypted — only parties can view terms
         </div>
       ) : termsUri ? (

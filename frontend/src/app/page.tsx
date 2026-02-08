@@ -14,12 +14,12 @@ function HeroSection() {
     <div className="relative mb-16 py-16 text-center">
       {/* Subtle gradient glow */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-purple-500/[var(--glow-opacity,0.08)] via-blue-500/[var(--glow-opacity,0.08)] to-purple-500/[var(--glow-opacity,0.08)] blur-3xl rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-white/[0.03] via-white/[0.05] to-white/[0.03] blur-3xl rounded-full" />
       </div>
       <h1 className="text-5xl font-bold tracking-tight mb-4 text-shell-heading">
         Agent Agreement
         <br />
-        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+        <span className="text-gray-400">
           Protocol
         </span>
       </h1>
@@ -91,7 +91,7 @@ export default function MyAgentsPage() {
         </div>
         <button
           onClick={() => setShowForm((prev) => !prev)}
-          className="bg-accent hover:bg-accent-hover text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-200 text-sm"
+          className="bg-white hover:bg-gray-200 text-black font-medium py-2.5 px-5 rounded-lg transition-all duration-200 text-sm"
         >
           {showForm ? "Cancel" : "+ New Agent"}
         </button>
