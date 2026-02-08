@@ -20,14 +20,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-gray-950 text-gray-100 min-h-screen`}>
+      <body className={`${inter.className} bg-surface-dark text-gray-100 min-h-screen`}>
         <Providers>
           <Navbar />
-          <main className="max-w-6xl mx-auto px-4 py-8">
+          <main className="max-w-6xl mx-auto px-6 py-12">
             <Suspense fallback={<Loading />}>
               {children}
             </Suspense>
           </main>
+          <footer className="border-t border-white/[0.04] mt-24">
+            <div className="max-w-6xl mx-auto px-6 py-8 text-center">
+              <p className="text-sm text-gray-600">
+                Agent Agreement Protocol — On-chain agent identity & agreements on Solana
+              </p>
+            </div>
+          </footer>
         </Providers>
       </body>
     </html>

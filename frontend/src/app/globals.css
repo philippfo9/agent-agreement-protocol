@@ -5,14 +5,57 @@
 @layer base {
   :root {
     color-scheme: dark;
+    --background: #0a0a0a;
+    --foreground: #e5e5e5;
+  }
+
+  body {
+    background: #0a0a0a;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Document card — the "paper on dark desk" look */
+  .document-card {
+    @apply bg-document rounded-xl border border-document-border shadow-document text-gray-900 relative overflow-hidden;
+  }
+
+  .document-card:hover {
+    @apply shadow-document-hover;
+  }
+
+  /* Mac window dots */
+  .window-dots {
+    @apply flex items-center gap-1.5 mb-4;
+  }
+
+  .window-dots::before {
+    content: "";
+    @apply inline-block w-3 h-3 rounded-full bg-red-400;
+    box-shadow: 18px 0 0 #facc15, 36px 0 0 #4ade80;
+  }
+
+  /* Dark UI container */
+  .dark-card {
+    @apply bg-surface border border-white/[0.06] rounded-xl;
+  }
+
+  /* Numbered step indicator */
+  .step-number {
+    @apply text-3xl font-bold text-white/10 font-mono leading-none;
   }
 }
 
 /* Wallet adapter overrides */
 .wallet-adapter-button {
-  @apply !bg-purple-600 hover:!bg-purple-700 !rounded-lg !text-sm !h-10;
+  @apply !bg-accent hover:!bg-accent-hover !rounded-lg !text-sm !h-10;
 }
 
 .wallet-adapter-modal-wrapper {
-  @apply !bg-gray-900 !rounded-2xl;
+  @apply !bg-surface !rounded-2xl !border !border-white/[0.06];
 }
