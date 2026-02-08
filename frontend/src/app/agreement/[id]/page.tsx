@@ -20,15 +20,25 @@ import {
 } from "@/lib/utils";
 
 const TIMELINE_STEPS = [
-  { status: 0, label: "Proposed" },
-  { status: 1, label: "Active" },
-  { status: 2, label: "Fulfilled" },
+  { status: 0, label: "Proposed", number: "01" },
+  { status: 1, label: "Active", number: "02" },
+  { status: 2, label: "Fulfilled", number: "03" },
 ];
 
 function statusToStep(status: number): number {
   if (status === 5) return -1; // cancelled
   if (status === 3 || status === 4) return 1; // breached/disputed = stuck at active
   return status;
+}
+
+function WindowDots() {
+  return (
+    <div className="flex items-center gap-1.5 mb-6">
+      <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+      <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+      <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+    </div>
+  );
 }
 
 export default function AgreementDetailPage() {
@@ -55,36 +65,36 @@ export default function AgreementDetailPage() {
   const currentStep = statusToStep(agreement.status);
   const isCancelled = agreement.status === 5;
 
-  // Private agreements: show only minimal info — no terms, no party details
+  // Private agreements: show only minimal info
   if (isPrivate) {
     return (
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
+        <div className="mb-10">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold">Agreement</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Agreement</h1>
             <StatusBadge status={agreement.status} />
           </div>
-          <p className="text-gray-500 font-mono text-sm">{idHex}</p>
+          <p className="text-gray-600 font-mono text-sm">{idHex}</p>
         </div>
-        <div className="bg-gray-900 border border-yellow-800/50 rounded-xl p-8 text-center">
-          <div className="text-4xl mb-4">🔒</div>
-          <h2 className="text-xl font-bold text-yellow-400 mb-2">Private Agreement</h2>
-          <p className="text-gray-400 text-sm max-w-md mx-auto">
+        <div className="dark-card p-10 text-center">
+          <div className="text-5xl mb-6">🔒</div>
+          <h2 className="text-xl font-bold text-amber-400 mb-3">Private Agreement</h2>
+          <p className="text-gray-500 text-sm max-w-md mx-auto leading-relaxed">
             This agreement is encrypted and only visible to its parties.
             Terms, party details, and escrow information are not publicly accessible.
           </p>
-          <div className="mt-6 grid grid-cols-3 gap-4 text-sm max-w-sm mx-auto">
+          <div className="mt-8 grid grid-cols-3 gap-6 text-sm max-w-sm mx-auto">
             <div>
-              <div className="text-gray-500 text-xs">Type</div>
-              <div>{AGREEMENT_TYPE_LABELS[agreement.agreementType] || "Unknown"}</div>
+              <div className="text-gray-600 text-xs mb-1">Type</div>
+              <div className="text-gray-200">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</div>
             </div>
             <div>
-              <div className="text-gray-500 text-xs">Parties</div>
-              <div>{agreement.numParties}</div>
+              <div className="text-gray-600 text-xs mb-1">Parties</div>
+              <div className="text-gray-200">{agreement.numParties}</div>
             </div>
             <div>
-              <div className="text-gray-500 text-xs">Created</div>
-              <div>{formatTimestamp(agreement.createdAt)}</div>
+              <div className="text-gray-600 text-xs mb-1">Created</div>
+              <div className="text-gray-200">{formatTimestamp(agreement.createdAt)}</div>
             </div>
           </div>
         </div>
@@ -95,27 +105,27 @@ export default function AgreementDetailPage() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold">Agreement</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Agreement</h1>
           <StatusBadge status={agreement.status} />
         </div>
-        <p className="text-gray-500 font-mono text-sm">{idHex}</p>
-        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
-          <span>{AGREEMENT_TYPE_LABELS[agreement.agreementType] || "Unknown"}</span>
-          <span>·</span>
-          <span className={isPrivate ? "text-yellow-500" : ""}>
+        <p className="text-gray-600 font-mono text-sm">{idHex}</p>
+        <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
+          <span className="font-medium">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</span>
+          <span className="text-gray-700">·</span>
+          <span className={isPrivate ? "text-amber-500" : ""}>
             {isPrivate ? "🔒 Private" : "🌐 Public"}
           </span>
         </div>
       </div>
 
-      {/* Timeline */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-medium mb-4">Lifecycle</h2>
+      {/* Timeline — numbered steps */}
+      <div className="dark-card p-8 mb-8">
+        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Lifecycle</h2>
         {isCancelled ? (
-          <div className="text-center text-red-400 text-sm py-2">
-            ✕ Agreement was cancelled
+          <div className="text-center text-red-400 text-sm py-3 bg-red-500/5 rounded-lg border border-red-500/10">
+            Agreement was cancelled
           </div>
         ) : (
           <div className="flex items-center justify-between">
@@ -124,27 +134,17 @@ export default function AgreementDetailPage() {
               return (
                 <div key={step.status} className="flex items-center flex-1">
                   <div className="flex flex-col items-center">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
-                        reached
-                          ? "bg-purple-500/20 border-purple-400 text-purple-400"
-                          : "border-gray-700 text-gray-600"
-                      }`}
-                    >
-                      {reached ? "✓" : i + 1}
-                    </div>
-                    <span
-                      className={`text-xs mt-1 ${
-                        reached ? "text-purple-400" : "text-gray-600"
-                      }`}
-                    >
+                    <span className={`text-2xl font-mono font-bold mb-2 ${reached ? "text-accent" : "text-white/10"}`}>
+                      {step.number}
+                    </span>
+                    <span className={`text-xs font-medium ${reached ? "text-accent" : "text-gray-600"}`}>
                       {step.label}
                     </span>
                   </div>
                   {i < TIMELINE_STEPS.length - 1 ? (
                     <div
-                      className={`flex-1 h-0.5 mx-2 ${
-                        currentStep > step.status ? "bg-purple-400" : "bg-gray-700"
+                      className={`flex-1 h-px mx-4 ${
+                        currentStep > step.status ? "bg-accent/50" : "bg-white/[0.06]"
                       }`}
                     />
                   ) : null}
@@ -155,134 +155,134 @@ export default function AgreementDetailPage() {
         )}
       </div>
 
-      {/* Parties */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-medium mb-4">
-          Parties ({agreement.numSigned}/{agreement.numParties} signed)
-        </h2>
-        <div className="space-y-3">
-          {parties.map(({ party, identity }) => {
-            const agentKey = identity?.agentKey.toBase58() ?? party.account.agentIdentity.toBase58();
-            return (
-              <div
-                key={party.publicKey.toBase58()}
-                className="flex items-center justify-between bg-gray-800/50 rounded-lg p-3"
-              >
-                <div className="flex items-center gap-3">
-                  <Link
-                    href={`/agent/${identity ? identity.agentKey.toBase58() : party.account.agentIdentity.toBase58()}`}
-                    className="text-purple-400 hover:text-purple-300 font-mono text-sm"
-                  >
-                    {shortenPubkey(agentKey, 6)}
-                  </Link>
-                  <span className="text-xs text-gray-500 bg-gray-700/50 px-2 py-0.5 rounded">
-                    {ROLE_LABELS[party.account.role] || "Unknown"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  {party.account.escrowDeposited.toNumber() > 0 ? (
-                    <span className="text-gray-400 text-xs">
-                      {lamportsToSol(party.account.escrowDeposited)} SOL deposited
-                    </span>
-                  ) : null}
-                  <span
-                    className={
-                      party.account.signed ? "text-green-400" : "text-gray-500"
-                    }
-                  >
-                    {party.account.signed
-                      ? `✓ Signed ${formatTimestamp(party.account.signedAt)}`
-                      : "Pending"}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {/* Contract Document — white card */}
+      <div className="document-card p-8 mb-8">
+        <WindowDots />
 
-      {/* Terms & Escrow */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-lg font-medium mb-4">Terms</h2>
-          <div className="space-y-3 text-sm">
+        {/* Parties Section */}
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-gray-800 mb-1">
+            Parties
+          </h2>
+          <p className="text-xs text-gray-400 mb-4">
+            {agreement.numSigned}/{agreement.numParties} <span className="font-serif italic">signed</span>
+          </p>
+          <div className="space-y-3">
+            {parties.map(({ party, identity }) => {
+              const agentKey = identity?.agentKey.toBase58() ?? party.account.agentIdentity.toBase58();
+              return (
+                <div
+                  key={party.publicKey.toBase58()}
+                  className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border border-gray-100"
+                >
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={`/agent/${identity ? identity.agentKey.toBase58() : party.account.agentIdentity.toBase58()}`}
+                      className="text-purple-600 hover:text-purple-500 font-mono text-sm font-medium"
+                    >
+                      {shortenPubkey(agentKey, 6)}
+                    </Link>
+                    <span className="text-[11px] uppercase tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-medium">
+                      {ROLE_LABELS[party.account.role] ?? "Unknown"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    {party.account.escrowDeposited.toNumber() > 0 ? (
+                      <span className="text-gray-500 text-xs">
+                        {lamportsToSol(party.account.escrowDeposited)} SOL
+                      </span>
+                    ) : null}
+                    <span
+                      className={
+                        party.account.signed ? "text-emerald-600 font-medium" : "text-gray-400"
+                      }
+                    >
+                      {party.account.signed
+                        ? `✓ ${formatTimestamp(party.account.signedAt)}`
+                        : "Pending"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Terms Section */}
+        <div className="mb-8 pb-8 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Terms</h2>
+          <div className="space-y-4 text-sm">
             <div>
-              <div className="text-gray-500 text-xs mb-1">Terms Hash</div>
-              <div className="font-mono text-gray-400 text-xs break-all">
+              <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Terms Hash</div>
+              <div className="font-mono text-gray-600 text-xs break-all bg-gray-50 rounded p-3">
                 {termsHash}
               </div>
             </div>
             <div>
-              <div className="text-gray-500 text-xs mb-1">Terms URI</div>
-              {isPrivate ? (
-                <span className="text-yellow-400 text-xs">🔒 Encrypted</span>
-              ) : termsUri ? (
+              <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Terms URI</div>
+              {termsUri ? (
                 <a
                   href={termsUri.startsWith("http") ? termsUri : `https://arweave.net/${termsUri}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-purple-400 hover:text-purple-300 text-xs font-mono break-all"
+                  className="text-purple-600 hover:text-purple-500 text-xs font-mono break-all"
                 >
                   {termsUri}
                 </a>
               ) : (
-                <span className="text-gray-500 text-xs">None</span>
+                <span className="text-gray-400 text-xs">None</span>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 className="text-lg font-medium mb-4">Escrow</h2>
-          <div className="space-y-3 text-sm">
-            <div>
-              <div className="text-gray-500 text-xs mb-1">Total Escrow</div>
-              <div className="text-xl font-bold">
-                {agreement.escrowTotal.toNumber() > 0
-                  ? `${lamportsToSol(agreement.escrowTotal)} SOL`
-                  : "None"}
-              </div>
-            </div>
-            {agreement.escrowTotal.toNumber() > 0 ? (
-              <div>
-                <div className="text-gray-500 text-xs mb-1">Escrow Mint</div>
-                <div className="font-mono text-gray-400 text-xs break-all">
-                  {shortenPubkey(agreement.escrowMint, 8)}
-                </div>
-              </div>
-            ) : null}
+        {/* Escrow Section */}
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Escrow</h2>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-gray-800">
+              {agreement.escrowTotal.toNumber() > 0
+                ? lamportsToSol(agreement.escrowTotal)
+                : "0"}
+            </span>
+            <span className="text-gray-400 text-sm">SOL</span>
           </div>
+          {agreement.escrowTotal.toNumber() > 0 ? (
+            <div className="mt-2 text-xs text-gray-400 font-mono">
+              Mint: {shortenPubkey(agreement.escrowMint, 8)}
+            </div>
+          ) : null}
         </div>
       </div>
 
-      {/* Metadata */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-lg font-medium mb-4">Details</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      {/* Metadata — dark card */}
+      <div className="dark-card p-8">
+        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Details</h2>
+        <div className="grid grid-cols-2 gap-6 text-sm">
           <div>
-            <div className="text-gray-500 text-xs mb-1">Created</div>
-            <div>{formatTimestamp(agreement.createdAt)}</div>
+            <div className="text-gray-600 text-xs mb-1">Created</div>
+            <div className="text-gray-300">{formatTimestamp(agreement.createdAt)}</div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Expires</div>
-            <div>
+            <div className="text-gray-600 text-xs mb-1">Expires</div>
+            <div className="text-gray-300">
               {agreement.expiresAt.toNumber() > 0
                 ? formatTimestamp(agreement.expiresAt)
                 : "Never"}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Proposer</div>
+            <div className="text-gray-600 text-xs mb-1">Proposer</div>
             <Link
               href={`/agent/${agreement.proposer.toBase58()}`}
-              className="text-purple-400 hover:text-purple-300 font-mono text-xs"
+              className="text-accent hover:text-accent-hover font-mono text-xs"
             >
               {shortenPubkey(agreement.proposer, 6)}
             </Link>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Agreement PDA</div>
-            <div className="font-mono text-gray-400 text-xs break-all">
+            <div className="text-gray-600 text-xs mb-1">Agreement PDA</div>
+            <div className="font-mono text-gray-500 text-xs break-all">
               {pdaStr}
             </div>
           </div>

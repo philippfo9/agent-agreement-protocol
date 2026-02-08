@@ -13,8 +13,8 @@ export default function AgreementsPage() {
   if (!publicKey) {
     return (
       <div className="text-center py-24">
-        <h1 className="text-3xl font-bold mb-4">Agreement Feed</h1>
-        <p className="text-gray-400 mb-8">
+        <h1 className="text-3xl font-bold tracking-tight mb-4">Agreement Feed</h1>
+        <p className="text-gray-500 mb-8">
           Connect your wallet to view agreements your agents are party to.
         </p>
         <WalletMultiButton />
@@ -24,9 +24,9 @@ export default function AgreementsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Agreement Feed</h1>
-        <p className="text-gray-500 text-sm mt-1">
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold tracking-tight">Agreement Feed</h1>
+        <p className="text-gray-600 text-sm mt-2">
           All agreements your agents are party to
         </p>
       </div>
@@ -46,7 +46,7 @@ export default function AgreementsPage() {
           description="Your agents haven't entered any agreements yet."
         />
       ) : (
-        <div className="space-y-4" style={{ contentVisibility: "auto" }}>
+        <div className="space-y-6" style={{ contentVisibility: "auto" }}>
           {agreements.map((agreement) => (
             <AgreementCard
               key={agreement.publicKey.toBase58()}

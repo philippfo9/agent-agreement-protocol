@@ -7,7 +7,6 @@ import { CardSkeletonList, EmptyState } from "@/components/Loading";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   AGREEMENT_TYPE_LABELS,
-  STATUS_LABELS,
 } from "@/lib/constants";
 import {
   shortenPubkey,
@@ -36,6 +35,16 @@ const TYPE_FILTERS = [
   { value: 3, label: "Joint Venture" },
   { value: 4, label: "Custom" },
 ];
+
+function WindowDots() {
+  return (
+    <div className="flex items-center gap-1.5 mb-3">
+      <div className="w-2 h-2 rounded-full bg-[#ff5f57]" />
+      <div className="w-2 h-2 rounded-full bg-[#febc2e]" />
+      <div className="w-2 h-2 rounded-full bg-[#28c840]" />
+    </div>
+  );
+}
 
 export default function ExplorePage() {
   const { data: agreements, isLoading, error } = usePublicAgreements();
@@ -67,54 +76,56 @@ export default function ExplorePage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">Explore Agreements</h1>
-        <p className="text-gray-500 text-sm mt-1">
+      <div className="mb-10">
+        <h1 className="text-3xl font-bold tracking-tight">Explore Agreements</h1>
+        <p className="text-gray-600 text-sm mt-2">
           Browse all public agreements on the protocol
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(Number(e.target.value));
-            setVisibleCount(PAGE_SIZE);
-          }}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
-        >
-          {STATUS_FILTERS.map((f) => (
-            <option key={f.value} value={f.value}>{f.label}</option>
-          ))}
-        </select>
-        <select
-          value={typeFilter}
-          onChange={(e) => {
-            setTypeFilter(Number(e.target.value));
-            setVisibleCount(PAGE_SIZE);
-          }}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
-        >
-          {TYPE_FILTERS.map((f) => (
-            <option key={f.value} value={f.value}>{f.label}</option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Search by agent pubkey..."
-          value={searchPubkey}
-          onChange={(e) => {
-            setSearchPubkey(e.target.value);
-            setVisibleCount(PAGE_SIZE);
-          }}
-          className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-500 flex-1 min-w-[200px]"
-        />
+      {/* Filter bar */}
+      <div className="dark-card p-4 mb-8">
+        <div className="flex flex-wrap gap-3">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(Number(e.target.value));
+              setVisibleCount(PAGE_SIZE);
+            }}
+            className="bg-surface-dark border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-400 focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            {STATUS_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+          <select
+            value={typeFilter}
+            onChange={(e) => {
+              setTypeFilter(Number(e.target.value));
+              setVisibleCount(PAGE_SIZE);
+            }}
+            className="bg-surface-dark border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-400 focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            {TYPE_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>{f.label}</option>
+            ))}
+          </select>
+          <input
+            type="text"
+            placeholder="Search by agent pubkey…"
+            value={searchPubkey}
+            onChange={(e) => {
+              setSearchPubkey(e.target.value);
+              setVisibleCount(PAGE_SIZE);
+            }}
+            className="bg-surface-dark border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-gray-400 placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-accent flex-1 min-w-[200px]"
+          />
+        </div>
       </div>
 
       {/* Results count */}
       {agreements ? (
-        <div className="text-xs text-gray-500 mb-4">
+        <div className="text-xs text-gray-600 mb-6 uppercase tracking-wider">
           {filtered.length} agreement{filtered.length !== 1 ? "s" : ""} found
         </div>
       ) : null}
@@ -135,16 +146,16 @@ export default function ExplorePage() {
         />
       ) : (
         <>
-          <div className="space-y-3" style={{ contentVisibility: "auto" }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5" style={{ contentVisibility: "auto" }}>
             {visible.map((agreement) => (
               <ExploreCard key={agreement.publicKey.toBase58()} agreement={agreement} />
             ))}
           </div>
           {hasMore ? (
-            <div className="text-center mt-6">
+            <div className="text-center mt-10">
               <button
                 onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-6 py-2 rounded-lg text-sm transition-colors"
+                className="bg-white/[0.04] hover:bg-white/[0.08] text-gray-400 px-8 py-2.5 rounded-lg text-sm transition-all duration-200 border border-white/[0.06]"
               >
                 Load More ({filtered.length - visibleCount} remaining)
               </button>
@@ -164,42 +175,41 @@ function ExploreCard({ agreement }: { agreement: AgreementAccount }) {
   return (
     <Link
       href={`/agreement/${publicKey.toBase58()}`}
-      className="block bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-gray-700 transition-colors"
+      className="block document-card p-5 hover:shadow-document-hover transition-all duration-300"
     >
-      <div className="flex items-start justify-between mb-2">
+      <WindowDots />
+      <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-sm text-gray-300">
-            {idHex.slice(0, 8)}...
+          <span className="font-mono text-sm text-gray-700 font-medium">
+            {idHex.slice(0, 8)}…
           </span>
           <StatusBadge status={account.status} />
-          <span className="text-xs text-gray-500">
-            {AGREEMENT_TYPE_LABELS[account.agreementType] || "Unknown"}
-          </span>
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-gray-400">
           {formatTimestamp(account.createdAt)}
         </span>
       </div>
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-4">
-          <span className="text-gray-400 text-xs">
-            Proposer:{" "}
-            <span className="font-mono text-purple-400">
-              {shortenPubkey(account.proposer)}
-            </span>
-          </span>
-          <span className="text-gray-500 text-xs">
-            {account.numSigned}/{account.numParties} signed
-          </span>
-        </div>
-        {account.escrowTotal.toNumber() > 0 ? (
-          <span className="text-xs text-gray-400">
-            {lamportsToSol(account.escrowTotal)} SOL
-          </span>
-        ) : null}
+      <div className="text-xs text-gray-500 mb-2">
+        {AGREEMENT_TYPE_LABELS[account.agreementType] ?? "Unknown"}
       </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-gray-500 text-xs">
+          Proposer:{" "}
+          <span className="font-mono text-purple-600 font-medium">
+            {shortenPubkey(account.proposer)}
+          </span>
+        </span>
+        <span className="text-gray-400 text-xs">
+          {account.numSigned}/{account.numParties} <span className="font-serif italic">signed</span>
+        </span>
+      </div>
+      {account.escrowTotal.toNumber() > 0 ? (
+        <div className="mt-2 text-xs text-gray-500 font-medium">
+          {lamportsToSol(account.escrowTotal)} SOL escrowed
+        </div>
+      ) : null}
       {termsUri ? (
-        <div className="mt-2 text-xs text-gray-500 font-mono truncate">
+        <div className="mt-2 text-[11px] text-gray-400 font-mono truncate bg-gray-50 rounded px-2 py-1">
           {termsUri}
         </div>
       ) : null}

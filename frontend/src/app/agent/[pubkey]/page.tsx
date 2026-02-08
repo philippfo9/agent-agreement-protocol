@@ -18,6 +18,17 @@ import {
   bytesToString,
 } from "@/lib/utils";
 
+function PubkeyAvatar({ pubkey }: { pubkey: string }) {
+  const h1 = (pubkey.charCodeAt(0) * 7 + pubkey.charCodeAt(1) * 13) % 360;
+  const h2 = (h1 + 60) % 360;
+  return (
+    <div
+      className="w-16 h-16 rounded-2xl flex-shrink-0"
+      style={{ background: `linear-gradient(135deg, hsl(${h1}, 60%, 50%), hsl(${h2}, 60%, 40%))` }}
+    />
+  );
+}
+
 export default function AgentProfilePage() {
   const params = useParams();
   const pubkeyStr = params.pubkey as string;
@@ -39,7 +50,6 @@ export default function AgentProfilePage() {
   const expired = isExpired(agent.scope.expiresAt);
   const hasParent = !isPubkeyDefault(agent.parent);
 
-  // Derived stats — computed during render
   const proposed = agreements?.filter((a) => a.account.status === 0).length ?? 0;
   const active = agreements?.filter((a) => a.account.status === 1).length ?? 0;
   const fulfilled = agreements?.filter((a) => a.account.status === 2).length ?? 0;
@@ -49,7 +59,6 @@ export default function AgentProfilePage() {
     0
   ) ?? 0;
 
-  // Unique counterparties: count unique proposer keys that aren't this agent's PDA
   const counterpartySet = new Set<string>();
   if (agreements) {
     for (const a of agreements) {
@@ -66,145 +75,142 @@ export default function AgentProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold">Agent Profile</h1>
-          <span
-            className={`text-xs font-medium px-2 py-1 rounded ${
-              expired
-                ? "bg-red-500/10 text-red-400"
-                : "bg-green-500/10 text-green-400"
-            }`}
-          >
-            {expired ? "Expired" : "Active"}
-          </span>
+      {/* Identity Card — document style */}
+      <div className="document-card p-8 mb-8">
+        <div className="flex items-center gap-1.5 mb-6">
+          <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+          <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+          <div className="w-3 h-3 rounded-full bg-[#28c840]" />
         </div>
-        <p className="text-gray-500 font-mono text-sm">{pubkeyStr}</p>
-      </div>
 
-      {/* Identity */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-medium mb-4">Identity</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div className="flex items-start gap-5 mb-6">
+          <PubkeyAvatar pubkey={pubkeyStr} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Agent Profile</h1>
+              <span
+                className={`text-[11px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-full ${
+                  expired
+                    ? "bg-red-50 text-red-500 border border-red-200"
+                    : "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                }`}
+              >
+                {expired ? "Expired" : "Active"}
+              </span>
+            </div>
+            <p className="text-gray-400 font-mono text-xs break-all">{pubkeyStr}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
           <div>
-            <div className="text-gray-500 text-xs mb-1">Agent Key</div>
-            <div className="font-mono text-purple-400 break-all">
+            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Agent Key</div>
+            <div className="font-mono text-purple-600 break-all text-xs">
               {agent.agentKey.toBase58()}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Human Authority</div>
-            <div className="font-mono text-gray-300 break-all">
+            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Human Authority</div>
+            <div className="font-mono text-gray-600 break-all text-xs">
               {agent.authority.toBase58()}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">PDA</div>
-            <div className="font-mono text-gray-400 break-all">
+            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">PDA</div>
+            <div className="font-mono text-gray-500 break-all text-xs">
               {agentPDA.toBase58()}
             </div>
           </div>
           {hasParent ? (
             <div>
-              <div className="text-gray-500 text-xs mb-1">Parent Agent</div>
+              <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Parent Agent</div>
               <Link
                 href={`/agent/${agent.parent.toBase58()}`}
-                className="font-mono text-purple-400 hover:text-purple-300 break-all"
+                className="font-mono text-purple-600 hover:text-purple-500 break-all text-xs"
               >
                 {shortenPubkey(agent.parent, 8)}
               </Link>
             </div>
           ) : null}
           <div>
-            <div className="text-gray-500 text-xs mb-1">Metadata Hash</div>
-            <div className="font-mono text-gray-400 text-xs break-all">
+            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Metadata Hash</div>
+            <div className="font-mono text-gray-500 text-xs break-all">
               {bytesToHex(agent.metadataHash)}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Member Since</div>
-            <div>{formatTimestamp(agent.createdAt)}</div>
+            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Member Since</div>
+            <div className="text-gray-700 text-xs">{formatTimestamp(agent.createdAt)}</div>
           </div>
         </div>
       </div>
 
       {/* Delegation Scope */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-medium mb-4">Delegation Scope</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+      <div className="dark-card p-8 mb-8">
+        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Delegation Scope</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm">
           <div>
-            <div className="text-gray-500 text-xs mb-1">Can Sign</div>
-            <div className={agent.scope.canSignAgreements ? "text-green-400" : "text-red-400"}>
+            <div className="text-gray-600 text-xs mb-1">Can Sign</div>
+            <div className={agent.scope.canSignAgreements ? "text-emerald-400 font-medium" : "text-red-400"}>
               {agent.scope.canSignAgreements ? "✓ Yes" : "✗ No"}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Can Commit Funds</div>
-            <div className={agent.scope.canCommitFunds ? "text-green-400" : "text-red-400"}>
+            <div className="text-gray-600 text-xs mb-1">Can Commit Funds</div>
+            <div className={agent.scope.canCommitFunds ? "text-emerald-400 font-medium" : "text-red-400"}>
               {agent.scope.canCommitFunds ? "✓ Yes" : "✗ No"}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Max Commit</div>
-            <div>
+            <div className="text-gray-600 text-xs mb-1">Max Commit</div>
+            <div className="text-gray-300">
               {agent.scope.maxCommitLamports.toNumber() === 0
                 ? "Unlimited"
                 : `${lamportsToSol(agent.scope.maxCommitLamports)} SOL`}
             </div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">Expires</div>
-            <div className={expired ? "text-red-400" : ""}>
+            <div className="text-gray-600 text-xs mb-1">Expires</div>
+            <div className={expired ? "text-red-400" : "text-gray-300"}>
               {formatTimestamp(agent.scope.expiresAt)}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Agreement Stats */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-lg font-medium mb-4">Agreement Stats</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-sm">
-          <div>
-            <div className="text-gray-500 text-xs mb-1">Proposed</div>
-            <div className="text-2xl font-bold text-yellow-400">{proposed}</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1">Active</div>
-            <div className="text-2xl font-bold text-green-400">{active}</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1">Fulfilled</div>
-            <div className="text-2xl font-bold text-blue-400">{fulfilled}</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1">Cancelled</div>
-            <div className="text-2xl font-bold text-gray-400">{cancelled}</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1">Escrow Volume</div>
-            <div className="text-2xl font-bold">{lamportsToSol(totalEscrow)}</div>
-            <div className="text-gray-500 text-xs">SOL</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1">Counterparties</div>
-            <div className="text-2xl font-bold text-purple-400">{counterpartySet.size}</div>
-          </div>
+      {/* Stats Grid */}
+      <div className="dark-card p-8 mb-8">
+        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">Agreement Stats</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+          {[
+            { label: "Proposed", value: proposed, color: "text-amber-400" },
+            { label: "Active", value: active, color: "text-emerald-400" },
+            { label: "Fulfilled", value: fulfilled, color: "text-blue-400" },
+            { label: "Cancelled", value: cancelled, color: "text-gray-500" },
+            { label: "Escrow Vol.", value: lamportsToSol(totalEscrow), color: "text-gray-200", suffix: "SOL" },
+            { label: "Counterparties", value: counterpartySet.size, color: "text-accent" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <div className="text-gray-600 text-xs mb-2">{stat.label}</div>
+              <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+              {stat.suffix ? <div className="text-gray-600 text-xs mt-0.5">{stat.suffix}</div> : null}
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Agreements List */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-        <h2 className="text-lg font-medium mb-4">
+      <div className="dark-card p-8">
+        <h2 className="text-sm uppercase tracking-wider text-gray-600 mb-6">
           Public Agreements ({publicAgreements?.length ?? 0})
         </h2>
         {privateCount > 0 ? (
-          <div className="text-xs text-yellow-400/60 mb-4">
+          <div className="text-xs text-amber-400/60 mb-6">
             🔒 {privateCount} private agreement{privateCount !== 1 ? "s" : ""} not shown
           </div>
         ) : null}
         {!publicAgreements || publicAgreements.length === 0 ? (
-          <div className="text-center text-gray-500 py-8 text-sm">
+          <div className="text-center text-gray-600 py-12 text-sm">
             No public agreements found for this agent
           </div>
         ) : (
@@ -216,41 +222,39 @@ export default function AgentProfilePage() {
                 <Link
                   key={agreement.publicKey.toBase58()}
                   href={`/agreement/${agreement.publicKey.toBase58()}`}
-                  className="block bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800 transition-colors"
+                  className="block bg-white/[0.03] rounded-lg p-5 hover:bg-white/[0.06] transition-all duration-200 border border-white/[0.04]"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <StatusBadge status={acc.status} />
-                      <span className="text-xs text-gray-500">
-                        {AGREEMENT_TYPE_LABELS[acc.agreementType] || "Unknown"}
+                      <span className="text-xs text-gray-600">
+                        {AGREEMENT_TYPE_LABELS[acc.agreementType] ?? "Unknown"}
                       </span>
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-600">
                       {formatTimestamp(acc.createdAt)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-3">
-                      <span className="text-gray-400 text-xs">
+                      <span className="text-gray-500 text-xs">
                         Proposer:{" "}
-                        <span className="font-mono text-purple-400">
+                        <span className="font-mono text-accent">
                           {shortenPubkey(acc.proposer)}
                         </span>
                       </span>
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-gray-600 text-xs">
                         {acc.numSigned}/{acc.numParties} signed
                       </span>
                     </div>
-                    <div className="text-right">
-                      {acc.escrowTotal.toNumber() > 0 ? (
-                        <span className="text-xs text-gray-400">
-                          {lamportsToSol(acc.escrowTotal)} SOL
-                        </span>
-                      ) : null}
-                    </div>
+                    {acc.escrowTotal.toNumber() > 0 ? (
+                      <span className="text-xs text-gray-500">
+                        {lamportsToSol(acc.escrowTotal)} SOL
+                      </span>
+                    ) : null}
                   </div>
                   {termsUri ? (
-                    <div className="mt-2 text-xs text-gray-500 font-mono truncate">
+                    <div className="mt-2 text-xs text-gray-600 font-mono truncate">
                       {termsUri}
                     </div>
                   ) : null}
