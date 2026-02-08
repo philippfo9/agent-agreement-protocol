@@ -55,6 +55,43 @@ export default function AgreementDetailPage() {
   const currentStep = statusToStep(agreement.status);
   const isCancelled = agreement.status === 5;
 
+  // Private agreements: show only minimal info — no terms, no party details
+  if (isPrivate) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl font-bold">Agreement</h1>
+            <StatusBadge status={agreement.status} />
+          </div>
+          <p className="text-gray-500 font-mono text-sm">{idHex}</p>
+        </div>
+        <div className="bg-gray-900 border border-yellow-800/50 rounded-xl p-8 text-center">
+          <div className="text-4xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-yellow-400 mb-2">Private Agreement</h2>
+          <p className="text-gray-400 text-sm max-w-md mx-auto">
+            This agreement is encrypted and only visible to its parties.
+            Terms, party details, and escrow information are not publicly accessible.
+          </p>
+          <div className="mt-6 grid grid-cols-3 gap-4 text-sm max-w-sm mx-auto">
+            <div>
+              <div className="text-gray-500 text-xs">Type</div>
+              <div>{AGREEMENT_TYPE_LABELS[agreement.agreementType] || "Unknown"}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Parties</div>
+              <div>{agreement.numParties}</div>
+            </div>
+            <div>
+              <div className="text-gray-500 text-xs">Created</div>
+              <div>{formatTimestamp(agreement.createdAt)}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       {/* Header */}

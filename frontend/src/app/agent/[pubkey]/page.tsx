@@ -60,9 +60,9 @@ export default function AgentProfilePage() {
     }
   }
 
-  const sortedAgreements = agreements?.toSorted(
-    (a, b) => b.account.createdAt.toNumber() - a.account.createdAt.toNumber()
-  );
+  const publicAgreements = agreements?.filter((a) => a.account.visibility === 0)
+    .toSorted((a, b) => b.account.createdAt.toNumber() - a.account.createdAt.toNumber());
+  const privateCount = (agreements?.length ?? 0) - (publicAgreements?.length ?? 0);
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -196,17 +196,21 @@ export default function AgentProfilePage() {
       {/* Agreements List */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
         <h2 className="text-lg font-medium mb-4">
-          Agreements ({agreements?.length ?? 0})
+          Public Agreements ({publicAgreements?.length ?? 0})
         </h2>
-        {!sortedAgreements || sortedAgreements.length === 0 ? (
+        {privateCount > 0 ? (
+          <div className="text-xs text-yellow-400/60 mb-4">
+            🔒 {privateCount} private agreement{privateCount !== 1 ? "s" : ""} not shown
+          </div>
+        ) : null}
+        {!publicAgreements || publicAgreements.length === 0 ? (
           <div className="text-center text-gray-500 py-8 text-sm">
-            No agreements found for this agent
+            No public agreements found for this agent
           </div>
         ) : (
           <div className="space-y-3">
-            {sortedAgreements.map((agreement) => {
+            {publicAgreements.map((agreement) => {
               const acc = agreement.account;
-              const isPrivate = acc.visibility === 1;
               const termsUri = bytesToString(acc.termsUri);
               return (
                 <Link
@@ -245,9 +249,7 @@ export default function AgentProfilePage() {
                       ) : null}
                     </div>
                   </div>
-                  {isPrivate ? (
-                    <div className="mt-2 text-xs text-yellow-400/60">🔒 Encrypted terms</div>
-                  ) : termsUri ? (
+                  {termsUri ? (
                     <div className="mt-2 text-xs text-gray-500 font-mono truncate">
                       {termsUri}
                     </div>
