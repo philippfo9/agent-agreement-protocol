@@ -1,0 +1,1089 @@
+{
+  "address": "",
+  "metadata": {
+    "name": "aap_compressed",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Agent Agreement Protocol V2 — compressed accounts via Light Protocol"
+  },
+  "instructions": [
+    {
+      "name": "add_party",
+      "discriminator": [
+        140,
+        77,
+        36,
+        36,
+        64,
+        148,
+        34,
+        149
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "proposer_account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "proposer_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "agreement_account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_agreement",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreement"
+            }
+          }
+        },
+        {
+          "name": "party_identity_account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "party_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "party_address_tree_info",
+          "type": {
+            "defined": {
+              "name": "PackedAddressTreeInfo"
+            }
+          }
+        },
+        {
+          "name": "output_state_tree_index",
+          "type": "u8"
+        },
+        {
+          "name": "role",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "cancel_agreement",
+      "discriminator": [
+        75,
+        89,
+        85,
+        4,
+        100,
+        216,
+        143,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "proposer_identity_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "proposer_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "agreement_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_agreement",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreement"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "close_agreement",
+      "discriminator": [
+        48,
+        34,
+        42,
+        18,
+        144,
+        209,
+        198,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "signer_identity_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "signer_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "signer_party_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "signer_party",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreementParty"
+            }
+          }
+        },
+        {
+          "name": "agreement_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_agreement",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreement"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "fulfill_agreement",
+      "discriminator": [
+        137,
+        43,
+        47,
+        162,
+        147,
+        240,
+        236,
+        5
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "signer_identity_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "signer_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "signer_party_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "signer_party",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreementParty"
+            }
+          }
+        },
+        {
+          "name": "agreement_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_agreement",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreement"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "propose_agreement",
+      "discriminator": [
+        225,
+        187,
+        165,
+        37,
+        49,
+        191,
+        189,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "proposer_account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "proposer_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "agreement_address_tree_info",
+          "type": {
+            "defined": {
+              "name": "PackedAddressTreeInfo"
+            }
+          }
+        },
+        {
+          "name": "party_address_tree_info",
+          "type": {
+            "defined": {
+              "name": "PackedAddressTreeInfo"
+            }
+          }
+        },
+        {
+          "name": "output_state_tree_index",
+          "type": "u8"
+        },
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "agreement_type",
+          "type": "u8"
+        },
+        {
+          "name": "visibility",
+          "type": "u8"
+        },
+        {
+          "name": "terms_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "terms_uri",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "num_parties",
+          "type": "u8"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "register_agent",
+      "discriminator": [
+        135,
+        157,
+        66,
+        195,
+        2,
+        113,
+        175,
+        30
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "address_tree_info",
+          "type": {
+            "defined": {
+              "name": "PackedAddressTreeInfo"
+            }
+          }
+        },
+        {
+          "name": "output_state_tree_index",
+          "type": "u8"
+        },
+        {
+          "name": "agent_key",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "metadata_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "scope",
+          "type": {
+            "defined": {
+              "name": "CompressedDelegationScope"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "register_sub_agent",
+      "discriminator": [
+        218,
+        146,
+        50,
+        162,
+        93,
+        32,
+        5,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "parent_account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "parent_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "address_tree_info",
+          "type": {
+            "defined": {
+              "name": "PackedAddressTreeInfo"
+            }
+          }
+        },
+        {
+          "name": "output_state_tree_index",
+          "type": "u8"
+        },
+        {
+          "name": "sub_agent_key",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "metadata_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "scope",
+          "type": {
+            "defined": {
+              "name": "CompressedDelegationScope"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "revoke_agent",
+      "discriminator": [
+        227,
+        60,
+        209,
+        125,
+        240,
+        117,
+        163,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "sign_agreement",
+      "discriminator": [
+        113,
+        163,
+        162,
+        101,
+        44,
+        101,
+        65,
+        204
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "signer_identity_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "signer_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "agreement_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_agreement",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreement"
+            }
+          }
+        },
+        {
+          "name": "party_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_party",
+          "type": {
+            "defined": {
+              "name": "CompressedAgreementParty"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_delegation",
+      "discriminator": [
+        87,
+        91,
+        130,
+        42,
+        18,
+        37,
+        155,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "proof",
+          "type": {
+            "defined": {
+              "name": "ValidityProof"
+            }
+          }
+        },
+        {
+          "name": "account_meta",
+          "type": {
+            "defined": {
+              "name": "CompressedAccountMeta"
+            }
+          }
+        },
+        {
+          "name": "current_identity",
+          "type": {
+            "defined": {
+              "name": "CompressedAgentIdentity"
+            }
+          }
+        },
+        {
+          "name": "new_scope",
+          "type": {
+            "defined": {
+              "name": "CompressedDelegationScope"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "CompressedAccountMeta",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "tree_info",
+            "docs": [
+              "Merkle tree context."
+            ],
+            "type": {
+              "defined": {
+                "name": "PackedStateTreeInfo"
+              }
+            }
+          },
+          {
+            "name": "address",
+            "docs": [
+              "Address."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "output_state_tree_index",
+            "docs": [
+              "Output merkle tree index."
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompressedAgentIdentity",
+      "docs": [
+        "Compressed AgentIdentity — same fields as V1 but stored as a compressed account.",
+        "No rent required. Uses SHA256 borsh hashing."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "metadata_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "scope",
+            "type": {
+              "defined": {
+                "name": "CompressedDelegationScope"
+              }
+            }
+          },
+          {
+            "name": "parent",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompressedAgreement",
+      "docs": [
+        "Compressed Agreement — same fields as V1 but stored as a compressed account.",
+        "No rent required."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "agreement_type",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "visibility",
+            "type": "u8"
+          },
+          {
+            "name": "proposer",
+            "type": "pubkey"
+          },
+          {
+            "name": "terms_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "terms_uri",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "num_parties",
+            "type": "u8"
+          },
+          {
+            "name": "num_signed",
+            "type": "u8"
+          },
+          {
+            "name": "parties_added",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompressedAgreementParty",
+      "docs": [
+        "Compressed AgreementParty — same fields as V1 but stored as a compressed account.",
+        "No rent required."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_address",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "agent_identity_address",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "role",
+            "type": "u8"
+          },
+          {
+            "name": "signed",
+            "type": "bool"
+          },
+          {
+            "name": "signed_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompressedDelegationScope",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "can_sign_agreements",
+            "type": "bool"
+          },
+          {
+            "name": "can_commit_funds",
+            "type": "bool"
+          },
+          {
+            "name": "max_commit_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CompressedProof",
+      "repr": {
+        "kind": "c"
+      },
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "a",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "b",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "c",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PackedAddressTreeInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address_merkle_tree_pubkey_index",
+            "type": "u8"
+          },
+          {
+            "name": "address_queue_pubkey_index",
+            "type": "u8"
+          },
+          {
+            "name": "root_index",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PackedStateTreeInfo",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "root_index",
+            "type": "u16"
+          },
+          {
+            "name": "prove_by_index",
+            "type": "bool"
+          },
+          {
+            "name": "merkle_tree_pubkey_index",
+            "type": "u8"
+          },
+          {
+            "name": "queue_pubkey_index",
+            "type": "u8"
+          },
+          {
+            "name": "leaf_index",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ValidityProof",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "option": {
+              "defined": {
+                "name": "CompressedProof"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
