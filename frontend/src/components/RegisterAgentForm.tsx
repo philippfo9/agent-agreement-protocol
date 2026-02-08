@@ -74,8 +74,8 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
       className="space-y-5"
     >
       <div>
-        <h3 className="text-lg font-semibold text-gray-100">Register New Agent</h3>
-        <p className="text-sm text-gray-500 mt-1">
+        <h3 className="text-lg font-semibold text-shell-heading">Register New Agent</h3>
+        <p className="text-sm text-shell-muted mt-1">
           Creates a new agent identity bound to your wallet. A new keypair will be generated automatically.
         </p>
       </div>
@@ -86,23 +86,23 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
             type="checkbox"
             checked={canSign}
             onChange={(e) => setCanSign(e.target.checked)}
-            className="rounded bg-surface border-white/10 text-accent focus:ring-accent"
+            className="rounded bg-input border-input-border text-accent focus:ring-accent"
           />
-          <span className="text-sm text-gray-300 group-hover:text-gray-100 transition-colors">Can sign agreements</span>
+          <span className="text-sm text-shell-fg group-hover:text-shell-heading transition-colors">Can sign agreements</span>
         </label>
         <label className="flex items-center gap-3 cursor-pointer group">
           <input
             type="checkbox"
             checked={canCommitFunds}
             onChange={(e) => setCanCommitFunds(e.target.checked)}
-            className="rounded bg-surface border-white/10 text-accent focus:ring-accent"
+            className="rounded bg-input border-input-border text-accent focus:ring-accent"
           />
-          <span className="text-sm text-gray-300 group-hover:text-gray-100 transition-colors">Can commit funds</span>
+          <span className="text-sm text-shell-fg group-hover:text-shell-heading transition-colors">Can commit funds</span>
         </label>
       </div>
 
       <div>
-        <label className="block text-sm text-gray-500 mb-1.5">
+        <label className="block text-sm text-shell-muted mb-1.5">
           Max commit (SOL) — 0 = unlimited
         </label>
         <input
@@ -111,12 +111,12 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           min="0"
           value={maxCommit}
           onChange={(e) => setMaxCommit(e.target.value)}
-          className="w-full bg-surface border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
+          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-gray-500 mb-1.5">
+        <label className="block text-sm text-shell-muted mb-1.5">
           Expires in (days) — 0 = never
         </label>
         <input
@@ -124,7 +124,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           min="0"
           value={expiresIn}
           onChange={(e) => setExpiresIn(e.target.value)}
-          className="w-full bg-surface border border-white/[0.08] rounded-lg px-4 py-2.5 text-sm text-gray-200 focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
+          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent/30 transition-colors"
         />
       </div>
 
@@ -137,7 +137,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
       <button
         type="submit"
         disabled={isPending || !wallet.publicKey}
-        className="w-full bg-accent hover:bg-accent-hover disabled:bg-white/[0.06] disabled:text-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200"
+        className="w-full bg-accent hover:bg-accent-hover disabled:bg-shell-skeleton disabled:text-shell-dim text-white font-medium py-3 px-4 rounded-lg transition-all duration-200"
       >
         {isPending ? "Registering..." : "Register Agent"}
       </button>

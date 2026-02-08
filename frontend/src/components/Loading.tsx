@@ -1,12 +1,12 @@
 "use client";
 
-const skeletonBase = "animate-pulse bg-white/[0.06] rounded";
+const skeletonBase = "animate-pulse bg-shell-skeleton rounded";
 
 export function Loading({ text = "Loading..." }: { text?: string }) {
   return (
     <div className="flex items-center justify-center py-16">
-      <div className="flex items-center gap-3 text-gray-500">
-        <div className="w-5 h-5 border-2 border-white/10 border-t-accent rounded-full animate-spin" />
+      <div className="flex items-center gap-3 text-shell-muted">
+        <div className="w-5 h-5 border-2 border-shell-border border-t-accent rounded-full animate-spin" />
         <span className="text-sm">{text}</span>
       </div>
     </div>
@@ -25,9 +25,9 @@ export function EmptyState({
   return (
     <div className="text-center py-20">
       <div className="text-5xl mb-6">{icon}</div>
-      <h3 className="text-lg font-semibold text-gray-200">{title}</h3>
+      <h3 className="text-lg font-semibold text-shell-fg">{title}</h3>
       {description ? (
-        <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">{description}</p>
+        <p className="mt-2 text-sm text-shell-muted max-w-md mx-auto">{description}</p>
       ) : null}
     </div>
   );
