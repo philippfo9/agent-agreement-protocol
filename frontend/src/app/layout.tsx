@@ -13,14 +13,20 @@ export const metadata: Metadata = {
   description: "On-chain agent identity & agreement management on Solana",
 };
 
+// Inline script to prevent FOUC — reads theme from localStorage before paint
+const themeScript = `try{var t=localStorage.getItem('aap-theme');if(t==='light')document.documentElement.classList.remove('dark');else document.documentElement.classList.add('dark')}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-surface-dark text-gray-100 min-h-screen`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className={`${inter.className} bg-shell text-shell-fg min-h-screen transition-colors duration-200`}>
         <Providers>
           <Navbar />
           <main className="max-w-6xl mx-auto px-6 py-12">
@@ -28,9 +34,9 @@ export default function RootLayout({
               {children}
             </Suspense>
           </main>
-          <footer className="border-t border-white/[0.04] mt-24">
+          <footer className="border-t border-divider mt-24">
             <div className="max-w-6xl mx-auto px-6 py-8 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-shell-dim">
                 Agent Agreement Protocol — On-chain agent identity & agreements on Solana
               </p>
             </div>

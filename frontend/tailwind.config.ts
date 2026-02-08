@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,13 +10,31 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        surface: {
-          DEFAULT: "#111111",
-          light: "#141414",
-          dark: "#0a0a0a",
+        // Semantic shell colors (switch with theme via CSS vars)
+        shell: {
+          DEFAULT: "var(--shell-bg)",
+          fg: "var(--shell-fg)",
+          heading: "var(--shell-heading)",
+          muted: "var(--shell-muted)",
+          dim: "var(--shell-dim)",
+          border: "var(--shell-border)",
+          "border-strong": "var(--shell-border-strong)",
+          hover: "var(--shell-hover)",
+          "hover-strong": "var(--shell-hover-strong)",
+          skeleton: "var(--shell-skeleton)",
         },
+        card: {
+          DEFAULT: "var(--card-bg)",
+          border: "var(--card-border)",
+        },
+        input: {
+          DEFAULT: "var(--input-bg)",
+          border: "var(--input-border)",
+          text: "var(--input-text)",
+        },
+        divider: "var(--divider)",
+        "step-color": "var(--step-color)",
+        // Static colors
         document: {
           DEFAULT: "#fafafa",
           border: "#e5e5e5",
@@ -30,8 +49,8 @@ const config: Config = {
         serif: ["Georgia", "Cambria", "Times New Roman", "serif"],
       },
       boxShadow: {
-        document: "0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2)",
-        "document-hover": "0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3)",
+        document: "var(--doc-shadow)",
+        "document-hover": "var(--doc-shadow-hover)",
         card: "0 2px 12px rgba(0, 0, 0, 0.3)",
       },
     },

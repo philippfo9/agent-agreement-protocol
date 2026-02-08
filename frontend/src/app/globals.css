@@ -3,24 +3,68 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light theme (default) ── */
   :root {
+    color-scheme: light;
+    --shell-bg: #f5f5f5;
+    --shell-fg: #1f2937;
+    --shell-heading: #111827;
+    --shell-muted: #6b7280;
+    --shell-dim: #9ca3af;
+    --navbar-bg: rgba(245, 245, 245, 0.8);
+    --shell-border: rgba(0, 0, 0, 0.08);
+    --shell-border-strong: rgba(0, 0, 0, 0.12);
+    --shell-hover: rgba(0, 0, 0, 0.03);
+    --shell-hover-strong: rgba(0, 0, 0, 0.06);
+    --shell-skeleton: rgba(0, 0, 0, 0.06);
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.06);
+    --input-bg: #ffffff;
+    --input-border: rgba(0, 0, 0, 0.12);
+    --input-text: #1f2937;
+    --step-color: rgba(0, 0, 0, 0.08);
+    --divider: rgba(0, 0, 0, 0.06);
+    --doc-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
+    --doc-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  /* ── Dark theme ── */
+  .dark {
     color-scheme: dark;
-    --background: #0a0a0a;
-    --foreground: #e5e5e5;
+    --shell-bg: #0a0a0a;
+    --shell-fg: #e5e5e5;
+    --shell-heading: #ffffff;
+    --shell-muted: #9ca3af;
+    --shell-dim: #4b5563;
+    --navbar-bg: rgba(10, 10, 10, 0.8);
+    --shell-border: rgba(255, 255, 255, 0.06);
+    --shell-border-strong: rgba(255, 255, 255, 0.08);
+    --shell-hover: rgba(255, 255, 255, 0.03);
+    --shell-hover-strong: rgba(255, 255, 255, 0.06);
+    --shell-skeleton: rgba(255, 255, 255, 0.06);
+    --card-bg: #111111;
+    --card-border: rgba(255, 255, 255, 0.06);
+    --input-bg: #111111;
+    --input-border: rgba(255, 255, 255, 0.08);
+    --input-text: #e5e5e5;
+    --step-color: rgba(255, 255, 255, 0.1);
+    --divider: rgba(255, 255, 255, 0.04);
+    --doc-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.2);
+    --doc-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    background: #0a0a0a;
-  }
-
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
+    background: var(--shell-bg);
+    color: var(--shell-fg);
   }
 }
 
 @layer components {
-  /* Document card — the "paper on dark desk" look */
+  /* Document card — "paper on desk" look (always light) */
   .document-card {
     @apply bg-document rounded-xl border border-document-border shadow-document text-gray-900 relative overflow-hidden;
   }
@@ -29,25 +73,15 @@
     @apply shadow-document-hover;
   }
 
-  /* Mac window dots */
-  .window-dots {
-    @apply flex items-center gap-1.5 mb-4;
-  }
-
-  .window-dots::before {
-    content: "";
-    @apply inline-block w-3 h-3 rounded-full bg-red-400;
-    box-shadow: 18px 0 0 #facc15, 36px 0 0 #4ade80;
-  }
-
-  /* Dark UI container */
+  /* Dark UI container (adapts to theme) */
   .dark-card {
-    @apply bg-surface border border-white/[0.06] rounded-xl;
+    @apply bg-card border border-card-border rounded-xl;
   }
 
   /* Numbered step indicator */
   .step-number {
-    @apply text-3xl font-bold text-white/10 font-mono leading-none;
+    @apply text-3xl font-bold font-mono leading-none;
+    color: var(--step-color);
   }
 }
 
@@ -57,5 +91,5 @@
 }
 
 .wallet-adapter-modal-wrapper {
-  @apply !bg-surface !rounded-2xl !border !border-white/[0.06];
+  @apply !bg-card !rounded-2xl !border !border-card-border;
 }

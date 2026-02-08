@@ -9,6 +9,7 @@ import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { NetworkContext, NetworkContextType } from "@/lib/network";
 import { NETWORKS, NetworkName } from "@/lib/constants";
+import { ThemeProvider } from "@/lib/theme";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 
@@ -27,12 +28,14 @@ export function Providers({ children }: { children: ReactNode }) {
   );
 
   return (
-    <NetworkContext.Provider value={networkCtx}>
-      <ConnectionProvider endpoint={endpoint}>
-        <WalletProvider wallets={wallets} autoConnect>
-          <WalletModalProvider>{children}</WalletModalProvider>
-        </WalletProvider>
-      </ConnectionProvider>
-    </NetworkContext.Provider>
+    <ThemeProvider>
+      <NetworkContext.Provider value={networkCtx}>
+        <ConnectionProvider endpoint={endpoint}>
+          <WalletProvider wallets={wallets} autoConnect>
+            <WalletModalProvider>{children}</WalletModalProvider>
+          </WalletProvider>
+        </ConnectionProvider>
+      </NetworkContext.Provider>
+    </ThemeProvider>
   );
 }
