@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Keypair, SystemProgram } from "@solana/web3.js";
+import { Keypair, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { AAP_IDL } from "@/lib/idl";
 import { getAgentIdentityPDA } from "@/lib/pda";
@@ -23,6 +23,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
   const [expiresIn, setExpiresIn] = useState("0");
   const [agentName, setAgentName] = useState("");
   const [registeredKey, setRegisteredKey] = useState<string | null>(null);
+  const [depositAmount, setDepositAmount] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,6 +66,24 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
+
+      // Deposit to vault if commit funds enabled and amount specified
+      const depositSol = parseFloat(depositAmount);
+      if (canCommitFunds && depositSol > 0) {
+        const [vaultPda] = PublicKey.findProgramAddressSync(
+          [Buffer.from("vault"), agentIdentityPDA.toBuffer()],
+          new PublicKey(AAP_IDL.address)
+        );
+        await (program.methods as any)
+          .depositToVault(new BN(Math.floor(depositSol * LAMPORTS_PER_SOL)))
+          .accounts({
+            authority: wallet.publicKey,
+            agentIdentity: agentIdentityPDA,
+            vault: vaultPda,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      }
 
       setRegisteredKey(agentKeypair.publicKey.toBase58());
       onSuccess();
@@ -125,19 +144,38 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
         </label>
       </div>
 
-      <div>
-        <label className="block text-sm text-shell-muted mb-1.5">
-          Max commit per agreement (SOL limit, not transferred) — 0 = unlimited
-        </label>
-        <input
-          type="number"
-          step="0.001"
-          min="0"
-          value={maxCommit}
-          onChange={(e) => setMaxCommit(e.target.value)}
-          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
-        />
-      </div>
+      {canCommitFunds && (
+        <>
+          <div>
+            <label className="block text-sm text-shell-muted mb-1.5">
+              Max commit per agreement (SOL) — 0 = unlimited
+            </label>
+            <input
+              type="number"
+              step="0.001"
+              min="0"
+              value={maxCommit}
+              onChange={(e) => setMaxCommit(e.target.value)}
+              className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="block text-sm text-shell-muted mb-1.5">
+              Initial vault deposit (SOL) — funds the agent can use
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={depositAmount}
+              onChange={(e) => setDepositAmount(e.target.value)}
+              placeholder="0"
+              className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
+            />
+            <p className="text-xs text-shell-dim mt-1">Deposited into the agent&apos;s on-chain vault. Withdrawable anytime.</p>
+          </div>
+        </>
+      )}
 
       <div>
         <label className="block text-sm text-shell-muted mb-1.5">

@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { AAP_IDL } from "@/lib/idl";
 import { getAgentIdentityPDA } from "@/lib/pda";
@@ -31,6 +31,7 @@ export default function ClaimAgentPage() {
   const [canCommitFunds, setCanCommitFunds] = useState(false);
   const [maxCommit, setMaxCommit] = useState("0");
   const [expiresIn, setExpiresIn] = useState("0");
+  const [depositAmount, setDepositAmount] = useState("");
 
   let validPubkey = false;
   try {
@@ -95,6 +96,24 @@ export default function ClaimAgentPage() {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
+
+      // Deposit to vault if amount specified
+      const depositSol = parseFloat(depositAmount);
+      if (canCommitFunds && depositSol > 0) {
+        const [vaultPda] = PublicKey.findProgramAddressSync(
+          [Buffer.from("vault"), agentIdentityPDA.toBuffer()],
+          new PublicKey(AAP_IDL.address)
+        );
+        await (program.methods as any)
+          .depositToVault(new BN(Math.floor(depositSol * LAMPORTS_PER_SOL)))
+          .accounts({
+            authority: wallet.publicKey,
+            agentIdentity: agentIdentityPDA,
+            vault: vaultPda,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      }
 
       setSuccess(true);
     } catch (err: unknown) {
@@ -237,17 +256,34 @@ export default function ClaimAgentPage() {
               </label>
             </div>
 
-            <div>
-              <label className="block text-sm text-shell-muted mb-1.5">Max commit per agreement (SOL limit, not transferred) — 0 = unlimited</label>
-              <input
-                type="number"
-                step="0.001"
-                min="0"
-                value={maxCommit}
-                onChange={(e) => setMaxCommit(e.target.value)}
-                className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
-              />
-            </div>
+            {canCommitFunds && (
+              <>
+                <div>
+                  <label className="block text-sm text-shell-muted mb-1.5">Max commit per agreement (SOL) — 0 = unlimited</label>
+                  <input
+                    type="number"
+                    step="0.001"
+                    min="0"
+                    value={maxCommit}
+                    onChange={(e) => setMaxCommit(e.target.value)}
+                    className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-shell-muted mb-1.5">Initial vault deposit (SOL) — funds the agent can use</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    placeholder="0"
+                    className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
+                  />
+                  <p className="text-xs text-shell-dim mt-1">SOL deposited into the agent&apos;s on-chain vault. You can withdraw anytime.</p>
+                </div>
+              </>
+            )}
 
             <div>
               <label className="block text-sm text-shell-muted mb-1.5">Expires in (days) — 0 = never</label>
