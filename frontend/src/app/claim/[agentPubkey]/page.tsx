@@ -129,7 +129,7 @@ export default function ClaimAgentPage() {
             <div className="font-mono text-xs text-shell-muted break-all">{existingAuthority}</div>
           </div>
           <Link
-            href={`/agent/${pda?.toBase58()}`}
+            href={`/agent/${agentPubkey}`}
             className="inline-block bg-white hover:bg-gray-200 text-black font-medium py-2.5 px-6 rounded-lg transition-all"
           >
             View Agent Profile →
@@ -156,7 +156,7 @@ export default function ClaimAgentPage() {
           </div>
           <div className="flex gap-3 justify-center">
             <Link
-              href={`/agent/${pda?.toBase58()}`}
+              href={`/agent/${agentPubkey}`}
               className="bg-white hover:bg-gray-200 text-black font-medium py-2.5 px-6 rounded-lg transition-all"
             >
               View Agent Profile →
@@ -232,7 +232,7 @@ export default function ClaimAgentPage() {
             </div>
 
             <div>
-              <label className="block text-sm text-shell-muted mb-1.5">Max commit (SOL) — 0 = unlimited</label>
+              <label className="block text-sm text-shell-muted mb-1.5">Max commit per agreement (SOL limit, not transferred) — 0 = unlimited</label>
               <input
                 type="number"
                 step="0.001"

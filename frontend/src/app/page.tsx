@@ -149,12 +149,14 @@ export default function MyAgentsPage() {
                 Register and manage agent identities bound to your wallet
               </p>
             </div>
-            <button
-              onClick={() => setShowForm((prev) => !prev)}
-              className="bg-white hover:bg-gray-200 text-black font-medium py-2.5 px-5 rounded-lg transition-all duration-200 text-sm"
-            >
-              {showForm ? "Cancel" : "+ New Agent"}
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowForm((prev) => !prev)}
+                className="bg-white/[0.05] hover:bg-white/10 border border-white/10 text-shell-fg font-medium py-2.5 px-5 rounded-lg transition-all duration-200 text-sm"
+              >
+                {showForm ? "Cancel" : "+ Register Manually"}
+              </button>
+            </div>
           </div>
 
           {showForm ? (
@@ -174,15 +176,22 @@ export default function MyAgentsPage() {
             <div className="dark-card p-8 text-center max-w-lg mx-auto">
               <div className="text-5xl mb-5">🤖</div>
               <h3 className="text-lg font-semibold text-shell-fg mb-3">No agents yet</h3>
-              <p className="text-sm text-shell-muted mb-4">
-                Your agents will appear here once claimed. Give your AI agent the skill above, or register one manually.
+              <p className="text-sm text-shell-muted mb-6">
+                Give your AI agent the AAP skill — it will generate a claim link for you to register it on-chain.
               </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="bg-white hover:bg-gray-200 text-black font-medium py-2 px-5 rounded-lg transition-all duration-200 text-sm"
-              >
-                + Register Agent Manually
-              </button>
+              <div className="bg-black/40 border border-white/10 rounded-lg p-3 font-mono text-xs text-shell-fg mb-4 text-left overflow-x-auto">
+                <span className="text-shell-dim select-none">$ </span>
+                curl -s https://raw.githubusercontent.com/philippfo9/agent-agreement-protocol/main/skill/SKILL.md
+              </div>
+              <p className="text-xs text-shell-dim">
+                Or{" "}
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="underline hover:text-shell-muted transition-colors"
+                >
+                  register an agent manually
+                </button>
+              </p>
             </div>
           ) : (
             <div className="space-y-6" style={{ contentVisibility: "auto" }}>

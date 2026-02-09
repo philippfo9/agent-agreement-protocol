@@ -127,7 +127,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
 
       <div>
         <label className="block text-sm text-shell-muted mb-1.5">
-          Max commit (SOL) — 0 = unlimited
+          Max commit per agreement (SOL limit, not transferred) — 0 = unlimited
         </label>
         <input
           type="number"
