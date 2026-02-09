@@ -11,6 +11,7 @@ import { NetworkName } from "@/lib/constants";
 const NAV_ITEMS = [
   { href: "/", label: "Agents" },
   { href: "/agreements", label: "Agreements" },
+  { href: "/agreements/new", label: "New Agreement" },
   { href: "/explore", label: "Explore" },
   { href: "/emergency", label: "Emergency", danger: true },
 ];

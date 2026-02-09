@@ -2,7 +2,14 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useState, useTransition } from "react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
+import { AAP_IDL } from "@/lib/idl";
+import { getAgentIdentityPDA } from "@/lib/pda";
 import { useAgreementDetail } from "@/lib/hooks";
+import { formatError } from "@/lib/errors";
 import { ProfileSkeleton, EmptyState } from "@/components/Loading";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
@@ -37,6 +44,88 @@ function WindowDots() {
       <div className="w-3 h-3 rounded-full bg-[#555]" />
       <div className="w-3 h-3 rounded-full bg-[#444]" />
       <div className="w-3 h-3 rounded-full bg-[#333]" />
+    </div>
+  );
+}
+
+function SignAction({ agreement, parties, pdaStr }: { agreement: any; parties: any[] | undefined; pdaStr: string }) {
+  const { connection } = useConnection();
+  const wallet = useWallet();
+  const [isPending, startTransition] = useTransition();
+  const [signError, setSignError] = useState<string | null>(null);
+  const [signed, setSigned] = useState(false);
+
+  if (!wallet.publicKey || agreement.status !== 0) return null; // Only show for PROPOSED
+
+  // Check if current wallet is an unsigned party
+  const myParty = parties?.find((p) => {
+    const agentKey = p.identity?.agentKey?.toBase58();
+    return agentKey === wallet.publicKey?.toBase58() && !p.account.signed;
+  });
+
+  // Also check if wallet has an agent identity that matches
+  const myAgentParty = parties?.find((p) => {
+    return !p.account.signed;
+  });
+
+  if (!myParty && !myAgentParty) return null;
+  const partyToSign = myParty || myAgentParty;
+
+  const handleSign = async () => {
+    if (!wallet.publicKey || !wallet.signTransaction || !partyToSign) return;
+    setSignError(null);
+
+    try {
+      const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
+      const program = new Program(AAP_IDL as any as Idl, provider);
+
+      const agentKey = partyToSign.identity?.agentKey || wallet.publicKey;
+      const [signerIdentityPDA] = getAgentIdentityPDA(agentKey);
+
+      await (program.methods as any)
+        .signAgreement(agreement.agreementId)
+        .accounts({
+          signer: agentKey,
+          signerIdentity: signerIdentityPDA,
+          agreement: new PublicKey(pdaStr),
+          party: partyToSign.publicKey,
+        })
+        .rpc();
+
+      setSigned(true);
+    } catch (err: unknown) {
+      setSignError(formatError(err));
+    }
+  };
+
+  if (signed) {
+    return (
+      <div className="mb-8 pb-8 border-b border-gray-200 text-center">
+        <div className="text-2xl mb-2">✅</div>
+        <p className="text-gray-600 font-medium">Agreement signed! Refresh to see updated status.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-8 pb-8 border-b border-gray-200">
+      <div className="bg-gray-50 rounded-xl p-6 text-center">
+        <div className="text-2xl mb-2">✍️</div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">Your Signature Required</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          This agreement is waiting for your signature. Review the terms above and sign to activate.
+        </p>
+        {signError && (
+          <div className="mb-4 text-sm text-gray-500">⚠️ {signError}</div>
+        )}
+        <button
+          onClick={() => startTransition(() => { handleSign(); })}
+          disabled={isPending}
+          className="bg-gray-800 hover:bg-gray-700 disabled:bg-gray-300 text-white font-medium py-3 px-8 rounded-lg transition-all"
+        >
+          {isPending ? "Signing..." : "Sign Agreement"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -207,6 +296,9 @@ export default function AgreementDetailPage() {
             })}
           </div>
         </div>
+
+        {/* Sign Action */}
+        <SignAction agreement={agreement} parties={parties} pdaStr={pdaStr} />
 
         {/* Terms Section */}
         <div className="mb-8 pb-8 border-b border-gray-200">
