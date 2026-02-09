@@ -10,6 +10,7 @@ import { getAgentIdentityPDA } from "@/lib/pda";
 import { useMyAgents } from "@/lib/hooks";
 import { formatError } from "@/lib/errors";
 import { AGREEMENT_TYPE_LABELS } from "@/lib/constants";
+import { AGREEMENT_TEMPLATES } from "@/lib/templates";
 import Link from "next/link";
 
 function randomAgreementId(): number[] {
@@ -40,13 +41,14 @@ export default function NewAgreementPage() {
 
   // Form state
   const [selectedAgent, setSelectedAgent] = useState<string>("");
-  const [counterpartyKey, setCounterpartyKey] = useState("");
+  const [counterparties, setCounterparties] = useState<string[]>([""]);
   const [agreementType, setAgreementType] = useState(1); // SERVICE default
   const [visibility, setVisibility] = useState(0); // PUBLIC default
   const [termsText, setTermsText] = useState("");
   const [expiresInDays, setExpiresInDays] = useState("90");
   const [needsIdentity, setNeedsIdentity] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
 
   // Auto-select first agent
   useEffect(() => {
@@ -63,6 +65,39 @@ export default function NewAgreementPage() {
       setNeedsIdentity(false);
     }
   }, [wallet.publicKey, myAgents]);
+
+  const handleTemplateSelect = (index: number | null) => {
+    setSelectedTemplate(index);
+    if (index === null) {
+      // Start from scratch
+      setAgreementType(1);
+      setVisibility(0);
+      setTermsText("");
+      setExpiresInDays("90");
+    } else {
+      const t = AGREEMENT_TEMPLATES[index];
+      setAgreementType(t.type);
+      setVisibility(t.visibility);
+      setTermsText(t.terms);
+      setExpiresInDays(t.expiresInDays);
+    }
+  };
+
+  const addCounterparty = () => {
+    if (counterparties.length < 7) {
+      setCounterparties([...counterparties, ""]);
+    }
+  };
+
+  const removeCounterparty = (index: number) => {
+    setCounterparties(counterparties.filter((_, i) => i !== index));
+  };
+
+  const updateCounterparty = (index: number, value: string) => {
+    const updated = [...counterparties];
+    updated[index] = value;
+    setCounterparties(updated);
+  };
 
   const handleQuickRegister = async () => {
     if (!wallet.publicKey || !wallet.signTransaction) return;
@@ -107,7 +142,8 @@ export default function NewAgreementPage() {
   };
 
   const handlePropose = async () => {
-    if (!wallet.publicKey || !wallet.signTransaction || !selectedAgent || !counterpartyKey) return;
+    const validCounterparties = counterparties.filter((k) => k.trim());
+    if (!wallet.publicKey || !wallet.signTransaction || !selectedAgent || validCounterparties.length === 0) return;
     setError(null);
 
     try {
@@ -141,6 +177,8 @@ export default function NewAgreementPage() {
       const days = parseInt(expiresInDays) || 90;
       const expiresAt = new BN(Math.floor(Date.now() / 1000) + days * 86400);
 
+      const numParties = validCounterparties.length + 1;
+
       // Propose agreement (proposer auto-signs)
       await (program.methods as any)
         .proposeAgreement(
@@ -149,7 +187,7 @@ export default function NewAgreementPage() {
           visibility,
           termsHash,
           termsUri,
-          2, // 2 parties
+          numParties,
           expiresAt
         )
         .accounts({
@@ -161,22 +199,24 @@ export default function NewAgreementPage() {
         })
         .rpc();
 
-      // Add counterparty
-      const counterparty = new PublicKey(counterpartyKey);
-      const [counterpartyIdentityPDA] = getAgentIdentityPDA(counterparty);
-      const [counterpartyPartyPDA] = getPartyPDA(agreementId, counterpartyIdentityPDA);
+      // Add each counterparty
+      for (const cpKey of validCounterparties) {
+        const counterparty = new PublicKey(cpKey.trim());
+        const [counterpartyIdentityPDA] = getAgentIdentityPDA(counterparty);
+        const [counterpartyPartyPDA] = getPartyPDA(agreementId, counterpartyIdentityPDA);
 
-      await (program.methods as any)
-        .addParty(agreementId, 1) // COUNTERPARTY role
-        .accounts({
-          proposerSigner: proposerKey,
-          proposerIdentity: proposerIdentityPDA,
-          agreement: agreementPda,
-          partyIdentity: counterpartyIdentityPDA,
-          party: counterpartyPartyPDA,
-          systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+        await (program.methods as any)
+          .addParty(agreementId, 1) // COUNTERPARTY role
+          .accounts({
+            proposerSigner: proposerKey,
+            proposerIdentity: proposerIdentityPDA,
+            agreement: agreementPda,
+            partyIdentity: counterpartyIdentityPDA,
+            party: counterpartyPartyPDA,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+      }
 
       const idHex = agreementId.map((b) => b.toString(16).padStart(2, "0")).join("");
       setSuccess({ agreementPda: agreementPda.toBase58(), agreementId: idHex });
@@ -203,7 +243,7 @@ export default function NewAgreementPage() {
           <div className="text-5xl mb-4">✅</div>
           <h1 className="text-2xl font-bold text-shell-heading mb-2">Agreement Proposed!</h1>
           <p className="text-shell-muted text-sm mb-6">
-            Your agreement is on-chain and waiting for the counterparty to sign.
+            Your agreement is on-chain and waiting for {counterparties.filter((k) => k.trim()).length > 1 ? "all counterparties" : "the counterparty"} to sign.
           </p>
           <div className="bg-white/[0.03] border border-white/10 rounded-lg p-4 mb-6 text-left space-y-2">
             <div>
@@ -234,6 +274,8 @@ export default function NewAgreementPage() {
     );
   }
 
+  const validCounterparties = counterparties.filter((k) => k.trim());
+
   return (
     <div className="max-w-2xl mx-auto py-10">
       <div className="mb-8">
@@ -263,6 +305,38 @@ export default function NewAgreementPage() {
         </div>
       ) : (
         <div className="dark-card p-8 space-y-6">
+          {/* Template selection */}
+          <div>
+            <label className="block text-sm text-shell-muted mb-2">Start from a template</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleTemplateSelect(null)}
+                className={`py-2 px-3 rounded-lg text-sm border transition-all text-left ${
+                  selectedTemplate === null
+                    ? "bg-white/10 border-white/30 text-shell-heading"
+                    : "bg-white/[0.02] border-white/10 text-shell-dim hover:text-shell-muted hover:border-white/20"
+                }`}
+              >
+                ✏️ From scratch
+              </button>
+              {AGREEMENT_TEMPLATES.map((t, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleTemplateSelect(i)}
+                  className={`py-2 px-3 rounded-lg text-sm border transition-all text-left ${
+                    selectedTemplate === i
+                      ? "bg-white/10 border-white/30 text-shell-heading"
+                      : "bg-white/[0.02] border-white/10 text-shell-dim hover:text-shell-muted hover:border-white/20"
+                  }`}
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Proposer selection */}
           {myAgents && myAgents.length > 1 ? (
             <div>
@@ -291,17 +365,45 @@ export default function NewAgreementPage() {
             </div>
           ) : null}
 
-          {/* Counterparty */}
+          {/* Counterparties */}
           <div>
-            <label className="block text-sm text-shell-muted mb-1.5">Counterparty (wallet or agent public key)</label>
-            <input
-              type="text"
-              value={counterpartyKey}
-              onChange={(e) => setCounterpartyKey(e.target.value)}
-              placeholder="Enter Solana public key..."
-              className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
-            />
-            <p className="text-xs text-shell-dim mt-1">The counterparty must also have a registered identity to sign.</p>
+            <label className="block text-sm text-shell-muted mb-1.5">
+              Counterparties (wallet or agent public keys)
+            </label>
+            <div className="space-y-2">
+              {counterparties.map((cp, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={cp}
+                    onChange={(e) => updateCounterparty(i, e.target.value)}
+                    placeholder={`Party ${i + 2} public key...`}
+                    className="flex-1 bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
+                  />
+                  {counterparties.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeCounterparty(i)}
+                      className="px-3 py-2.5 rounded-lg border border-white/10 text-shell-dim hover:text-shell-muted hover:border-white/20 transition-all text-sm"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              <p className="text-xs text-shell-dim">Each counterparty must have a registered identity to sign.</p>
+              {counterparties.length < 7 && (
+                <button
+                  type="button"
+                  onClick={addCounterparty}
+                  className="text-xs text-shell-muted hover:text-shell-heading transition-colors"
+                >
+                  + Add party
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Agreement type */}
@@ -360,7 +462,7 @@ export default function NewAgreementPage() {
             <textarea
               value={termsText}
               onChange={(e) => setTermsText(e.target.value)}
-              rows={4}
+              rows={6}
               placeholder="Describe the agreement terms..."
               className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors resize-none"
             />
@@ -387,14 +489,14 @@ export default function NewAgreementPage() {
 
           <button
             onClick={() => startTransition(() => { handlePropose(); })}
-            disabled={isPending || !counterpartyKey}
+            disabled={isPending || validCounterparties.length === 0}
             className="w-full bg-white hover:bg-gray-200 disabled:bg-shell-skeleton disabled:text-shell-dim text-black font-medium py-3 px-4 rounded-lg transition-all duration-200"
           >
-            {isPending ? "Proposing..." : "Propose Agreement"}
+            {isPending ? "Proposing..." : `Propose Agreement (${validCounterparties.length + 1} parties)`}
           </button>
 
           <p className="text-xs text-shell-dim text-center">
-            You will auto-sign as proposer. The counterparty will need to sign to activate the agreement.
+            You will auto-sign as proposer. {validCounterparties.length > 1 ? "All counterparties" : "The counterparty"} will need to sign to activate the agreement.
           </p>
         </div>
       )}
