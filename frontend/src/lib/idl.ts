@@ -1,89 +1,1399 @@
-// Minimal IDL type definition for AAP program
-// This allows Anchor to deserialize accounts without a full IDL JSON file
-
 export const AAP_IDL = {
-  version: "0.1.0",
-  name: "agent_agreement_protocol",
-  address: "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ",
-  metadata: {
-    name: "agent_agreement_protocol",
-    version: "0.1.0",
-    spec: "0.1.0",
+  "address": "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ",
+  "metadata": {
+    "name": "agent_agreement_protocol",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
   },
-  instructions: [],
-  accounts: [
+  "instructions": [
     {
-      name: "AgentIdentity",
-      type: {
-        kind: "struct" as const,
-        fields: [
-          { name: "authority", type: "publicKey" },
-          { name: "agentKey", type: "publicKey" },
-          { name: "metadataHash", type: { array: ["u8", 32] } },
+      "name": "add_party",
+      "discriminator": [
+        140,
+        77,
+        36,
+        36,
+        64,
+        148,
+        34,
+        149
+      ],
+      "accounts": [
+        {
+          "name": "proposer_signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "proposer_identity"
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "party_identity",
+          "docs": [
+            "The AgentIdentity of the party being added"
+          ]
+        },
+        {
+          "name": "party",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "account",
+                "path": "party_identity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "role",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "cancel_agreement",
+      "discriminator": [
+        75,
+        89,
+        85,
+        4,
+        100,
+        216,
+        143,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "proposer_identity",
+          "docs": [
+            "Proposer's AgentIdentity \u2014 signer must be the agent_key or authority"
+          ]
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "close_agreement",
+      "discriminator": [
+        48,
+        34,
+        42,
+        18,
+        144,
+        209,
+        198,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "signer_identity",
+          "docs": [
+            "Signer's AgentIdentity \u2014 signer must be the authority"
+          ]
+        },
+        {
+          "name": "signer_party",
+          "docs": [
+            "Signer must be a party to the agreement"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "account",
+                "path": "signer_identity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "fulfill_agreement",
+      "discriminator": [
+        137,
+        43,
+        47,
+        162,
+        147,
+        240,
+        236,
+        5
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "signer_identity",
+          "docs": [
+            "Signer's AgentIdentity \u2014 must be the agent_key or authority"
+          ]
+        },
+        {
+          "name": "signer_party",
+          "docs": [
+            "Signer must be a party to the agreement"
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "account",
+                "path": "signer_identity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "propose_agreement",
+      "discriminator": [
+        225,
+        187,
+        165,
+        37,
+        49,
+        191,
+        189,
+        11
+      ],
+      "accounts": [
+        {
+          "name": "proposer_signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "proposer_identity"
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposer_party",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "account",
+                "path": "proposer_identity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "agreement_type",
+          "type": "u8"
+        },
+        {
+          "name": "visibility",
+          "type": "u8"
+        },
+        {
+          "name": "terms_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "terms_uri",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "num_parties",
+          "type": "u8"
+        },
+        {
+          "name": "expires_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "register_agent",
+      "discriminator": [
+        135,
+        157,
+        66,
+        195,
+        2,
+        113,
+        175,
+        30
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "agent_identity",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agent_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "agent_key",
+          "type": "pubkey"
+        },
+        {
+          "name": "metadata_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "scope",
+          "type": {
+            "defined": {
+              "name": "DelegationScope"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "register_sub_agent",
+      "discriminator": [
+        218,
+        146,
+        50,
+        162,
+        93,
+        32,
+        5,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "parent_agent_signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "parent_identity"
+        },
+        {
+          "name": "sub_agent_identity",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "sub_agent_key"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "sub_agent_key",
+          "type": "pubkey"
+        },
+        {
+          "name": "metadata_hash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "scope",
+          "type": {
+            "defined": {
+              "name": "DelegationScope"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "revoke_agent",
+      "discriminator": [
+        227,
+        60,
+        209,
+        125,
+        240,
+        117,
+        163,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "agent_identity"
+          ]
+        },
+        {
+          "name": "agent_identity",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "sign_agreement",
+      "discriminator": [
+        113,
+        163,
+        162,
+        101,
+        44,
+        101,
+        65,
+        204
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "signer_identity"
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "party",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "account",
+                "path": "signer_identity"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_delegation",
+      "discriminator": [
+        87,
+        91,
+        130,
+        42,
+        18,
+        37,
+        155,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "agent_identity"
+          ]
+        },
+        {
+          "name": "agent_identity",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_scope",
+          "type": {
+            "defined": {
+              "name": "DelegationScope"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "AgentIdentity",
+      "discriminator": [
+        11,
+        149,
+        31,
+        27,
+        186,
+        76,
+        241,
+        72
+      ]
+    },
+    {
+      "name": "Agreement",
+      "discriminator": [
+        83,
+        212,
+        5,
+        110,
+        225,
+        249,
+        197,
+        84
+      ]
+    },
+    {
+      "name": "AgreementParty",
+      "discriminator": [
+        126,
+        203,
+        208,
+        120,
+        149,
+        204,
+        109,
+        16
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AgentRegistered",
+      "discriminator": [
+        191,
+        78,
+        217,
+        54,
+        232,
+        100,
+        189,
+        85
+      ]
+    },
+    {
+      "name": "AgentRevoked",
+      "discriminator": [
+        12,
+        251,
+        249,
+        166,
+        122,
+        83,
+        162,
+        116
+      ]
+    },
+    {
+      "name": "AgreementActivated",
+      "discriminator": [
+        168,
+        173,
+        97,
+        52,
+        93,
+        93,
+        134,
+        198
+      ]
+    },
+    {
+      "name": "AgreementCancelled",
+      "discriminator": [
+        132,
+        200,
+        190,
+        125,
+        242,
+        4,
+        12,
+        146
+      ]
+    },
+    {
+      "name": "AgreementFulfilled",
+      "discriminator": [
+        19,
+        161,
+        253,
+        221,
+        47,
+        231,
+        201,
+        56
+      ]
+    },
+    {
+      "name": "AgreementProposed",
+      "discriminator": [
+        223,
+        233,
+        107,
+        85,
+        28,
+        89,
+        104,
+        9
+      ]
+    },
+    {
+      "name": "AgreementSigned",
+      "discriminator": [
+        39,
+        40,
+        241,
+        112,
+        64,
+        221,
+        219,
+        203
+      ]
+    },
+    {
+      "name": "DelegationUpdated",
+      "discriminator": [
+        195,
+        70,
+        246,
+        184,
+        110,
+        77,
+        100,
+        4
+      ]
+    },
+    {
+      "name": "PartyAdded",
+      "discriminator": [
+        184,
+        81,
+        21,
+        192,
+        69,
+        14,
+        200,
+        232
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "AgentKeyEqualsAuthority",
+      "msg": "Agent key must be different from authority"
+    },
+    {
+      "code": 6001,
+      "name": "ScopeExpired",
+      "msg": "Delegation scope has already expired"
+    },
+    {
+      "code": 6002,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: signer is not the authority"
+    },
+    {
+      "code": 6003,
+      "name": "DelegationExpired",
+      "msg": "Agent delegation has expired"
+    },
+    {
+      "code": 6004,
+      "name": "CannotSignAgreements",
+      "msg": "Agent does not have permission to sign agreements"
+    },
+    {
+      "code": 6005,
+      "name": "CannotCommitFunds",
+      "msg": "Agent does not have permission to commit funds"
+    },
+    {
+      "code": 6006,
+      "name": "EscrowExceedsLimit",
+      "msg": "Escrow amount exceeds delegation max_commit_lamports"
+    },
+    {
+      "code": 6007,
+      "name": "SubAgentScopeExceedsParent",
+      "msg": "Sub-agent scope cannot exceed parent scope"
+    },
+    {
+      "code": 6008,
+      "name": "MaxDelegationDepth",
+      "msg": "Maximum delegation depth is 2 levels (human -> agent -> sub-agent)"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidAgreementType",
+      "msg": "Invalid agreement type"
+    },
+    {
+      "code": 6010,
+      "name": "InvalidVisibility",
+      "msg": "Invalid visibility value"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidRole",
+      "msg": "Invalid party role"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidPartyCount",
+      "msg": "Number of parties must be between 2 and 8"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidStatus",
+      "msg": "Agreement is not in the expected status"
+    },
+    {
+      "code": 6014,
+      "name": "AgreementExpired",
+      "msg": "Agreement has expired"
+    },
+    {
+      "code": 6015,
+      "name": "AlreadySigned",
+      "msg": "Party has already signed"
+    },
+    {
+      "code": 6016,
+      "name": "MaxPartiesExceeded",
+      "msg": "Maximum number of parties already added"
+    },
+    {
+      "code": 6017,
+      "name": "EscrowDistributionMismatch",
+      "msg": "Escrow distribution does not sum to total"
+    },
+    {
+      "code": 6018,
+      "name": "EscrowNotDistributed",
+      "msg": "Escrow has not been fully distributed"
+    },
+    {
+      "code": 6019,
+      "name": "AgentHasActiveAgreements",
+      "msg": "Agent has active agreements and cannot be revoked"
+    }
+  ],
+  "types": [
+    {
+      "name": "AgentIdentity",
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
-            name: "scope",
-            type: {
-              defined: "DelegationScope",
-            },
+            "name": "authority",
+            "type": "pubkey"
           },
-          { name: "parent", type: "publicKey" },
-          { name: "createdAt", type: "i64" },
-          { name: "bump", type: "u8" },
-        ],
-      },
+          {
+            "name": "agent_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "metadata_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "scope",
+            "type": {
+              "defined": {
+                "name": "DelegationScope"
+              }
+            }
+          },
+          {
+            "name": "parent",
+            "type": "pubkey"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
     },
     {
-      name: "Agreement",
-      type: {
-        kind: "struct" as const,
-        fields: [
-          { name: "agreementId", type: { array: ["u8", 16] } },
-          { name: "agreementType", type: "u8" },
-          { name: "status", type: "u8" },
-          { name: "visibility", type: "u8" },
-          { name: "proposer", type: "publicKey" },
-          { name: "termsHash", type: { array: ["u8", 32] } },
-          { name: "termsUri", type: { array: ["u8", 64] } },
-          { name: "escrowVault", type: "publicKey" },
-          { name: "escrowMint", type: "publicKey" },
-          { name: "escrowTotal", type: "u64" },
-          { name: "numParties", type: "u8" },
-          { name: "numSigned", type: "u8" },
-          { name: "partiesAdded", type: "u8" },
-          { name: "createdAt", type: "i64" },
-          { name: "expiresAt", type: "i64" },
-          { name: "bump", type: "u8" },
-        ],
-      },
+      "name": "AgentRegistered",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_key",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_identity",
+            "type": "pubkey"
+          }
+        ]
+      }
     },
     {
-      name: "AgreementParty",
-      type: {
-        kind: "struct" as const,
-        fields: [
-          { name: "agreement", type: "publicKey" },
-          { name: "agentIdentity", type: "publicKey" },
-          { name: "role", type: "u8" },
-          { name: "signed", type: "bool" },
-          { name: "signedAt", type: "i64" },
-          { name: "escrowDeposited", type: "u64" },
-          { name: "bump", type: "u8" },
-        ],
-      },
+      "name": "AgentRevoked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_key",
+            "type": "pubkey"
+          }
+        ]
+      }
     },
-  ],
-  types: [
     {
-      name: "DelegationScope",
-      type: {
-        kind: "struct" as const,
-        fields: [
-          { name: "canSignAgreements", type: "bool" },
-          { name: "canCommitFunds", type: "bool" },
-          { name: "maxCommitLamports", type: "u64" },
-          { name: "expiresAt", type: "i64" },
-        ],
-      },
+      "name": "Agreement",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "agreement_type",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "visibility",
+            "type": "u8"
+          },
+          {
+            "name": "proposer",
+            "type": "pubkey"
+          },
+          {
+            "name": "terms_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "terms_uri",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "escrow_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "escrow_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "escrow_total",
+            "type": "u64"
+          },
+          {
+            "name": "num_parties",
+            "type": "u8"
+          },
+          {
+            "name": "num_signed",
+            "type": "u8"
+          },
+          {
+            "name": "parties_added",
+            "type": "u8"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
     },
-  ],
+    {
+      "name": "AgreementActivated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgreementCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgreementFulfilled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgreementParty",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_identity",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
+          },
+          {
+            "name": "signed",
+            "type": "bool"
+          },
+          {
+            "name": "signed_at",
+            "type": "i64"
+          },
+          {
+            "name": "escrow_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgreementProposed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "proposer",
+            "type": "pubkey"
+          },
+          {
+            "name": "agreement_pda",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgreementSigned",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "party",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DelegationScope",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "can_sign_agreements",
+            "type": "bool"
+          },
+          {
+            "name": "can_commit_funds",
+            "type": "bool"
+          },
+          {
+            "name": "max_commit_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "expires_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DelegationUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "agent_identity",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PartyAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agreement_id",
+            "type": {
+              "array": [
+                "u8",
+                16
+              ]
+            }
+          },
+          {
+            "name": "party",
+            "type": "pubkey"
+          },
+          {
+            "name": "role",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
 } as const;
