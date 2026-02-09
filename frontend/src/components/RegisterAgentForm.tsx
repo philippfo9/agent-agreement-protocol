@@ -21,6 +21,8 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
   const [canCommitFunds, setCanCommitFunds] = useState(false);
   const [maxCommit, setMaxCommit] = useState("0");
   const [expiresIn, setExpiresIn] = useState("0");
+  const [agentName, setAgentName] = useState("");
+  const [registeredKey, setRegisteredKey] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,6 +38,12 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
       const [agentIdentityPDA] = getAgentIdentityPDA(agentKeypair.publicKey);
 
       const metadataHash = new Array(32).fill(0);
+      if (agentName) {
+        const nameBytes = new TextEncoder().encode(agentName);
+        for (let i = 0; i < Math.min(nameBytes.length, 32); i++) {
+          metadataHash[i] = nameBytes[i];
+        }
+      }
       const expiresInDays = parseInt(expiresIn);
       const expiresAt =
         expiresInDays > 0
@@ -58,6 +66,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
         })
         .rpc();
 
+      setRegisteredKey(agentKeypair.publicKey.toBase58());
       onSuccess();
     } catch (err: unknown) {
       setError(formatError(err));
@@ -79,6 +88,20 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
         <p className="text-sm text-shell-muted mt-1">
           Creates a new agent identity bound to your wallet. A new keypair will be generated automatically.
         </p>
+      </div>
+
+      <div>
+        <label className="block text-sm text-shell-muted mb-1.5">
+          Agent name (optional, stored on-chain)
+        </label>
+        <input
+          type="text"
+          maxLength={32}
+          value={agentName}
+          onChange={(e) => setAgentName(e.target.value)}
+          placeholder="e.g. Trading Bot Alpha"
+          className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

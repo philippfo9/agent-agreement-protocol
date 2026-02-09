@@ -133,9 +133,11 @@ export default function AgentProfilePage() {
             </div>
           ) : null}
           <div>
-            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Metadata Hash</div>
+            <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">
+              {bytesToString(agent.metadataHash) ? "Agent Name" : "Metadata Hash"}
+            </div>
             <div className="font-mono text-gray-500 text-xs break-all">
-              {bytesToHex(agent.metadataHash)}
+              {bytesToString(agent.metadataHash) || bytesToHex(agent.metadataHash)}
             </div>
           </div>
           <div>
