@@ -29,10 +29,10 @@ pub use light_sdk::instruction::{
     account_meta::CompressedAccountMeta, PackedAddressTreeInfo, ValidityProof,
 };
 
-declare_id!("CmPr5AEFxgHVZnDAbPr5RCDHm8d7bJjhXDqRTmFSCVkW");
+declare_id!("Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY");
 
 pub const LIGHT_CPI_SIGNER: CpiSigner =
-    derive_light_cpi_signer!("CmPr5AEFxgHVZnDAbPr5RCDHm8d7bJjhXDqRTmFSCVkW");
+    derive_light_cpi_signer!("Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY");
 
 #[program]
 pub mod aap_compressed {

@@ -9,7 +9,7 @@ pub mod state;
 use instructions::*;
 use state::DelegationScope;
 
-declare_id!("4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe");
+declare_id!("BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ");
 
 #[program]
 pub mod agent_agreement_protocol {
