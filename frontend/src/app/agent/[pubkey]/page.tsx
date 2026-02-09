@@ -2,7 +2,9 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { useAgentProfile, useAgentAgreements } from "@/lib/hooks";
+import { VaultPanel } from "@/components/VaultPanel";
 import { ProfileSkeleton, EmptyState } from "@/components/Loading";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
@@ -31,6 +33,7 @@ function PubkeyAvatar({ pubkey }: { pubkey: string }) {
 
 export default function AgentProfilePage() {
   const params = useParams();
+  const wallet = useWallet();
   const pubkeyStr = params.pubkey as string;
   const { data: profile, isLoading, error } = useAgentProfile(pubkeyStr);
   const { data: agreements } = useAgentAgreements(profile?.pda ?? null);
@@ -200,6 +203,13 @@ export default function AgentProfilePage() {
           ))}
         </div>
       </div>
+
+      {/* Vault — only for authority */}
+      {wallet?.publicKey?.toBase58() === agent.authority.toBase58() && (
+        <div className="mb-8">
+          <VaultPanel agentIdentityPda={agentPDA} />
+        </div>
+      )}
 
       {/* Agreements List */}
       <div className="dark-card p-8">

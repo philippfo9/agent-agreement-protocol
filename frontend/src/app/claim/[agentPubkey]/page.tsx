@@ -11,6 +11,7 @@ import { getAgentIdentityPDA } from "@/lib/pda";
 import { fetchAgentIdentity } from "@/lib/program";
 import { formatError } from "@/lib/errors";
 import { bytesToString } from "@/lib/utils";
+import { VaultPanel } from "@/components/VaultPanel";
 import Link from "next/link";
 
 export default function ClaimAgentPage() {
@@ -154,6 +155,11 @@ export default function ClaimAgentPage() {
             <div className="text-xs text-shell-dim uppercase tracking-wider mb-1 mt-3">Your Authority</div>
             <div className="font-mono text-xs text-shell-muted break-all">{wallet.publicKey?.toBase58()}</div>
           </div>
+          {pda && (
+            <div className="mb-6 text-left">
+              <VaultPanel agentIdentityPda={pda} />
+            </div>
+          )}
           <div className="flex gap-3 justify-center">
             <Link
               href={`/agent/${agentPubkey}`}
