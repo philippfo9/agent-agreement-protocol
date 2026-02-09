@@ -11,6 +11,7 @@ import { useMyAgents } from "@/lib/hooks";
 import { formatError } from "@/lib/errors";
 import { AGREEMENT_TYPE_LABELS } from "@/lib/constants";
 import { AGREEMENT_TEMPLATES } from "@/lib/templates";
+import { DocumentUpload } from "@/components/DocumentUpload";
 import Link from "next/link";
 
 function randomAgreementId(): number[] {
@@ -46,6 +47,7 @@ export default function NewAgreementPage() {
   const [visibility, setVisibility] = useState(0); // PUBLIC default
   const [termsText, setTermsText] = useState("");
   const [expiresInDays, setExpiresInDays] = useState("90");
+  const [uploadedDoc, setUploadedDoc] = useState<{ key: string; url: string; hash: string; name: string; size: number; type: string } | null>(null);
   const [needsIdentity, setNeedsIdentity] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
@@ -157,9 +159,14 @@ export default function NewAgreementPage() {
       const [proposerIdentityPDA] = getAgentIdentityPDA(proposerKey);
       const [proposerPartyPDA] = getPartyPDA(agreementId, proposerIdentityPDA);
 
-      // Hash terms
+      // Hash terms — use uploaded doc hash if available, otherwise hash text
       const termsHash = new Array(32).fill(0);
-      if (termsText) {
+      if (uploadedDoc) {
+        // Use the document's SHA-256 hash
+        for (let i = 0; i < 32; i++) {
+          termsHash[i] = parseInt(uploadedDoc.hash.slice(i * 2, i * 2 + 2), 16);
+        }
+      } else if (termsText) {
         const encoder = new TextEncoder();
         const data = encoder.encode(termsText);
         const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -167,9 +174,12 @@ export default function NewAgreementPage() {
         for (let i = 0; i < 32; i++) termsHash[i] = hashArray[i];
       }
 
-      // Terms URI (store terms text directly for now, truncated to 64 bytes)
+      // Terms URI — use R2 key if doc uploaded, otherwise store text
       const termsUri = new Array(64).fill(0);
-      if (termsText) {
+      if (uploadedDoc) {
+        const uriBytes = new TextEncoder().encode(uploadedDoc.key.slice(0, 60));
+        for (let i = 0; i < Math.min(uriBytes.length, 64); i++) termsUri[i] = uriBytes[i];
+      } else if (termsText) {
         const uriBytes = new TextEncoder().encode(termsText.slice(0, 60));
         for (let i = 0; i < Math.min(uriBytes.length, 64); i++) termsUri[i] = uriBytes[i];
       }
@@ -456,14 +466,25 @@ export default function NewAgreementPage() {
             </div>
           </div>
 
+          {/* Document Upload */}
+          <div>
+            <label className="block text-sm text-shell-muted mb-1.5">Attach document (optional — PDF, image, or text)</label>
+            <DocumentUpload
+              onUpload={(doc) => setUploadedDoc(doc)}
+              document={uploadedDoc}
+            />
+          </div>
+
           {/* Terms */}
           <div>
-            <label className="block text-sm text-shell-muted mb-1.5">Terms (hashed on-chain, first 60 chars stored)</label>
+            <label className="block text-sm text-shell-muted mb-1.5">
+              {uploadedDoc ? "Additional notes (optional)" : "Terms (hashed on-chain, first 60 chars stored)"}
+            </label>
             <textarea
               value={termsText}
               onChange={(e) => setTermsText(e.target.value)}
-              rows={6}
-              placeholder="Describe the agreement terms..."
+              rows={uploadedDoc ? 3 : 6}
+              placeholder={uploadedDoc ? "Add notes about this agreement..." : "Describe the agreement terms..."}
               className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors resize-none"
             />
           </div>
