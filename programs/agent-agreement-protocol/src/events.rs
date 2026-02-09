@@ -53,3 +53,19 @@ pub struct AgreementCancelled {
 pub struct AgreementFulfilled {
     pub agreement_id: [u8; 16],
 }
+
+#[event]
+pub struct VaultDeposit {
+    pub agent_identity: Pubkey,
+    pub authority: Pubkey,
+    pub amount: u64,
+    pub new_balance: u64,
+}
+
+#[event]
+pub struct VaultWithdraw {
+    pub agent_identity: Pubkey,
+    pub authority: Pubkey,
+    pub amount: u64,
+    pub remaining_balance: u64,
+}

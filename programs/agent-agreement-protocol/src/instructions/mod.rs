@@ -8,6 +8,8 @@ pub mod sign_agreement;
 pub mod cancel_agreement;
 pub mod fulfill_agreement;
 pub mod close_agreement;
+pub mod deposit_to_vault;
+pub mod withdraw_from_vault;
 
 pub use register_agent::*;
 pub use update_delegation::*;
@@ -19,3 +21,5 @@ pub use sign_agreement::*;
 pub use cancel_agreement::*;
 pub use fulfill_agreement::*;
 pub use close_agreement::*;
+pub use deposit_to_vault::*;
+pub use withdraw_from_vault::*;

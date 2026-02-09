@@ -101,4 +101,18 @@ pub mod agent_agreement_protocol {
     ) -> Result<()> {
         instructions::close_agreement::handler(ctx, agreement_id)
     }
+
+    pub fn deposit_to_vault(
+        ctx: Context<DepositToVault>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::deposit_to_vault::handler(ctx, amount)
+    }
+
+    pub fn withdraw_from_vault(
+        ctx: Context<WithdrawFromVault>,
+        amount: u64,
+    ) -> Result<()> {
+        instructions::withdraw_from_vault::handler(ctx, amount)
+    }
 }

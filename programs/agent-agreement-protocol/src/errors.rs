@@ -61,4 +61,10 @@ pub enum AapError {
 
     #[msg("Agent has active agreements and cannot be revoked")]
     AgentHasActiveAgreements,
+
+    #[msg("Invalid amount: must be greater than zero")]
+    InvalidAmount,
+
+    #[msg("Insufficient vault balance for withdrawal")]
+    InsufficientVaultBalance,
 }

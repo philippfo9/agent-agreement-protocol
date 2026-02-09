@@ -127,7 +127,7 @@
         {
           "name": "proposer_identity",
           "docs": [
-            "Proposer's AgentIdentity \u2014 signer must be the agent_key or authority"
+            "Proposer's AgentIdentity — signer must be the agent_key or authority"
           ]
         },
         {
@@ -190,7 +190,7 @@
         {
           "name": "signer_identity",
           "docs": [
-            "Signer's AgentIdentity \u2014 signer must be the authority"
+            "Signer's AgentIdentity — signer must be the authority"
           ]
         },
         {
@@ -262,6 +262,61 @@
       ]
     },
     {
+      "name": "deposit_to_vault",
+      "discriminator": [
+        18,
+        62,
+        110,
+        8,
+        26,
+        106,
+        248,
+        151
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "agent_identity"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent_identity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "fulfill_agreement",
       "discriminator": [
         137,
@@ -281,7 +336,7 @@
         {
           "name": "signer_identity",
           "docs": [
-            "Signer's AgentIdentity \u2014 must be the agent_key or authority"
+            "Signer's AgentIdentity — must be the agent_key or authority"
           ]
         },
         {
@@ -764,6 +819,61 @@
           }
         }
       ]
+    },
+    {
+      "name": "withdraw_from_vault",
+      "discriminator": [
+        180,
+        34,
+        37,
+        46,
+        156,
+        0,
+        211,
+        238
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "agent_identity"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "agent_identity"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -778,6 +888,19 @@
         76,
         241,
         72
+      ]
+    },
+    {
+      "name": "AgentVault",
+      "discriminator": [
+        232,
+        220,
+        237,
+        164,
+        157,
+        9,
+        215,
+        194
       ]
     },
     {
@@ -924,6 +1047,32 @@
         200,
         232
       ]
+    },
+    {
+      "name": "VaultDeposit",
+      "discriminator": [
+        4,
+        248,
+        234,
+        163,
+        99,
+        238,
+        140,
+        45
+      ]
+    },
+    {
+      "name": "VaultWithdraw",
+      "discriminator": [
+        133,
+        90,
+        194,
+        198,
+        170,
+        52,
+        90,
+        180
+      ]
     }
   ],
   "errors": [
@@ -1026,6 +1175,16 @@
       "code": 6019,
       "name": "AgentHasActiveAgreements",
       "msg": "Agent has active agreements and cannot be revoked"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidAmount",
+      "msg": "Invalid amount: must be greater than zero"
+    },
+    {
+      "code": 6021,
+      "name": "InsufficientVaultBalance",
+      "msg": "Insufficient vault balance for withdrawal"
     }
   ],
   "types": [
@@ -1106,6 +1265,45 @@
           {
             "name": "agent_key",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AgentVault",
+      "docs": [
+        "A vault PDA that holds SOL on behalf of an agent.",
+        "Seeds: [\"vault\", agent_identity.key()]",
+        "The vault is a system-owned PDA whose lamport balance is the deposited amount.",
+        "We don't need a custom account struct — we use the PDA itself as a native SOL vault.",
+        "This file exists for documentation; the actual vault is just a PDA with lamports."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent_identity",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_deposited",
+            "type": "u64"
+          },
+          {
+            "name": "total_withdrawn",
+            "type": "u64"
+          },
+          {
+            "name": "total_committed",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -1391,6 +1589,54 @@
           {
             "name": "role",
             "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultDeposit",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent_identity",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "new_balance",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultWithdraw",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "agent_identity",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "remaining_balance",
+            "type": "u64"
           }
         ]
       }
