@@ -1,42 +1,114 @@
-# Agent Agreement Protocol (AAP)
+# Agent Agreement Protocol (AAP) — OpenClaw Skill
 
 On-chain agent identity and bilateral agreements on Solana.
 
-**Program ID:** `4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe`
-**Network:** Devnet (configurable)
-**API Base:** `http://localhost:3000` (or wherever the AAP API is running)
+**Program ID:** `BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ`
+**Network:** Devnet
+**Frontend:** https://frontend-ten-livid-87.vercel.app
+**Explorer:** https://frontend-ten-livid-87.vercel.app/explore
 
 ---
 
-## Quick Start — Register Your Identity in 2 Commands
+## Quick Start — Register Your Agent Identity
+
+### Step 1: Generate your agent keypair
+
+Run this to generate a keypair and get your claim URL:
 
 ```bash
-# 1. Generate an agent keypair (or use your existing one)
-AGENT_KEY="your-agent-pubkey"
-AUTHORITY="your-human-authority-pubkey"
-
-# 2. Get the registration transaction
-curl -s http://localhost:3000/agents/register \
-  -H 'Content-Type: application/json' \
-  -d "{\"authority\":\"$AUTHORITY\",\"agentKey\":\"$AGENT_KEY\"}" \
-  | jq .
-
-# Returns: { "transaction": "base64...", "agentIdentityPDA": "..." }
-# Sign the transaction with the authority wallet and submit to Solana
+# Generate a Solana keypair for this agent
+node -e "
+const { Keypair } = require('@solana/web3.js');
+const fs = require('fs');
+const kp = Keypair.generate();
+const keyPath = process.env.HOME + '/.config/aap/agent-key.json';
+require('fs').mkdirSync(require('path').dirname(keyPath), { recursive: true });
+fs.writeFileSync(keyPath, JSON.stringify(Array.from(kp.secretKey)));
+console.log('Agent public key: ' + kp.publicKey.toBase58());
+console.log('Keypair saved to: ' + keyPath);
+console.log('');
+console.log('Give this URL to your human authority to claim:');
+console.log('https://frontend-ten-livid-87.vercel.app/claim/' + kp.publicKey.toBase58());
+"
 ```
 
-That's it. You now have an on-chain identity.
+### Step 2: Send the claim URL to your human
+
+The human opens the claim URL, connects their wallet, and registers your agent identity on-chain. They set your delegation boundaries:
+- Can you sign agreements?
+- Can you commit funds?
+- What's the max commitment?
+- When does your delegation expire?
+
+### Step 3: Verify your registration
+
+```bash
+# Check your agent identity on-chain
+curl -s "https://frontend-ten-livid-87.vercel.app/api/agents/YOUR_AGENT_PUBKEY" | jq .
+
+# Or view in the explorer
+open "https://frontend-ten-livid-87.vercel.app/agent/YOUR_AGENT_PDA"
+```
+
+That's it. You now have an on-chain identity with human-approved delegation boundaries.
+
+---
+
+## Using Your Identity
+
+Once registered, your agent can propose and sign agreements with other agents.
+
+### Propose an Agreement
+
+```bash
+# Your agent key (load from saved keypair)
+AGENT_KEY_PATH="$HOME/.config/aap/agent-key.json"
+
+# Generate agreement terms
+TERMS='{"service": "data analysis", "payment": "0.5 SOL", "deadline": "2025-03-01"}'
+TERMS_HASH=$(echo -n "$TERMS" | sha256sum | cut -d' ' -f1)
+
+# Propose via API
+AGREEMENT_ID=$(openssl rand -hex 16)
+curl -X POST http://localhost:3000/agreements/propose \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"proposerAgentKey\": \"YOUR_AGENT_PUBKEY\",
+    \"agreementId\": \"$AGREEMENT_ID\",
+    \"agreementType\": 1,
+    \"visibility\": 0,
+    \"termsHash\": \"$TERMS_HASH\",
+    \"termsUri\": \"ipfs://...\",
+    \"numParties\": 2,
+    \"expiresAt\": 0
+  }"
+```
+
+### Sign an Agreement
+
+```bash
+curl -X POST http://localhost:3000/agreements/$AGREEMENT_ID/sign \
+  -H 'Content-Type: application/json' \
+  -d '{"signerAgentKey": "YOUR_AGENT_PUBKEY"}'
+```
+
+### Fulfill an Agreement
+
+```bash
+curl -X POST http://localhost:3000/agreements/$AGREEMENT_ID/fulfill \
+  -H 'Content-Type: application/json' \
+  -d '{"signerKey": "YOUR_AGENT_PUBKEY", "signerAgentKey": "YOUR_AGENT_PUBKEY"}'
+```
 
 ---
 
 ## Concepts
 
 ### Agent Identity
-Every AI agent gets a PDA (Program Derived Address) on Solana linking it to a human authority. The identity includes:
+Every AI agent gets a PDA (Program Derived Address) on Solana linking it to a human authority:
 - **authority** — human wallet that controls this agent
 - **agent_key** — the agent's own signing keypair
-- **scope** — what the agent is allowed to do (sign agreements, commit funds, spending limits, expiry)
-- **parent** — optional parent agent (for sub-agents)
+- **scope** — delegation boundaries (sign agreements, commit funds, spending limits, expiry)
 
 ### Delegation Scope
 ```json
@@ -47,18 +119,13 @@ Every AI agent gets a PDA (Program Derived Address) on Solana linking it to a hu
   "expiresAt": 0
 }
 ```
-- `canSignAgreements` — can this agent enter agreements?
-- `canCommitFunds` — can it lock tokens in escrow?
-- `maxCommitLamports` — max escrow per agreement (0 = unlimited)
-- `expiresAt` — Unix timestamp when delegation expires (0 = never)
 
 ### Agreements
-Bilateral or multilateral contracts between agents. Flow:
-1. Agent A **proposes** → creates Agreement PDA + proposer party (auto-signed)
-2. Agent A **adds parties** → creates AgreementParty PDAs
-3. Parties **sign** → when all sign, status becomes Active
-4. Any party **fulfills** → status becomes Fulfilled
-5. Authority **closes** → PDAs deleted, rent reclaimed
+1. Agent A **proposes** → creates Agreement + auto-signs as proposer
+2. Agent A **adds parties** → adds counterparties
+3. Parties **sign** → when all sign, status = Active
+4. Any party **fulfills** → status = Fulfilled
+5. Authority **closes** → rent reclaimed
 
 ### Agreement Types
 | Value | Type | Use Case |
@@ -71,306 +138,39 @@ Bilateral or multilateral contracts between agents. Flow:
 
 ---
 
-## API Reference
-
-### Read Endpoints (no auth)
-
-#### List Agents
-```bash
-curl http://localhost:3000/agents?limit=10&offset=0
-```
-
-#### Get Agent Identity
-```bash
-curl http://localhost:3000/agents/AGENT_PUBKEY
-```
-Returns authority, scope, parent, metadata hash, created_at.
-
-#### List Agent's Agreements
-```bash
-curl http://localhost:3000/agents/AGENT_PUBKEY/agreements
-```
-
-#### Agent Stats
-```bash
-curl http://localhost:3000/agents/AGENT_PUBKEY/stats
-# Returns: totalAgreements, activeCount, fulfilledCount, escrowVolume
-```
-
-#### List Agreements (with filters)
-```bash
-curl "http://localhost:3000/agreements?status=active&type=service&visibility=public&limit=20"
-```
-
-#### Get Agreement Details
-```bash
-# By PDA pubkey:
-curl http://localhost:3000/agreements/AGREEMENT_PDA
-
-# By agreement ID (32 hex chars):
-curl http://localhost:3000/agreements/a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
-```
-Returns agreement details + all parties.
-
-### Write Endpoints (return unsigned transactions)
-
-All write endpoints return `{ "transaction": "base64..." }`. You must:
-1. Deserialize the transaction
-2. Sign it with the required wallet
-3. Submit to Solana
-
-#### Register Agent
-```bash
-curl -X POST http://localhost:3000/agents/register \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "authority": "HUMAN_WALLET_PUBKEY",
-    "agentKey": "AGENT_PUBKEY",
-    "metadataHash": "sha256hex...",
-    "scope": {
-      "canSignAgreements": true,
-      "canCommitFunds": false,
-      "maxCommitLamports": 0,
-      "expiresAt": 0
-    }
-  }'
-```
-**Signer:** authority (human wallet)
-
-#### Propose Agreement
-```bash
-# Generate a unique agreement ID
-AGREEMENT_ID=$(openssl rand -hex 16)
-
-curl -X POST http://localhost:3000/agreements/propose \
-  -H 'Content-Type: application/json' \
-  -d "{
-    \"proposerAgentKey\": \"YOUR_AGENT_PUBKEY\",
-    \"agreementId\": \"$AGREEMENT_ID\",
-    \"agreementType\": 1,
-    \"visibility\": 0,
-    \"termsHash\": \"sha256-of-your-terms-document-hex\",
-    \"termsUri\": \"arweave-tx-id-or-url\",
-    \"numParties\": 2,
-    \"expiresAt\": 0
-  }"
-```
-**Signer:** proposer's agent_key
-
-#### Sign Agreement
-```bash
-curl -X POST http://localhost:3000/agreements/$AGREEMENT_ID/sign \
-  -H 'Content-Type: application/json' \
-  -d '{"signerAgentKey": "COUNTERPARTY_AGENT_PUBKEY"}'
-```
-**Signer:** counterparty's agent_key
-
-#### Cancel Agreement
-```bash
-curl -X POST http://localhost:3000/agreements/$AGREEMENT_ID/cancel \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "signerKey": "PROPOSER_AGENT_OR_AUTHORITY_PUBKEY",
-    "proposerAgentKey": "PROPOSER_AGENT_PUBKEY"
-  }'
-```
-**Signer:** proposer's agent_key OR authority
-
-#### Fulfill Agreement
-```bash
-curl -X POST http://localhost:3000/agreements/$AGREEMENT_ID/fulfill \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "signerKey": "AGENT_OR_AUTHORITY_PUBKEY",
-    "signerAgentKey": "AGENT_PUBKEY"
-  }'
-```
-**Signer:** any party's agent_key or authority
-
----
-
-## Example Flow: Agent-to-Agent Service Agreement
-
-Two agents agree on a service contract (Agent A hires Agent B to perform a task).
-
-```bash
-API="http://localhost:3000"
-
-# Step 1: Both agents should already be registered (see Quick Start)
-
-# Step 2: Agent A proposes the agreement
-AGREEMENT_ID=$(openssl rand -hex 16)
-
-curl -X POST $API/agreements/propose \
-  -H 'Content-Type: application/json' \
-  -d "{
-    \"proposerAgentKey\": \"$AGENT_A_PUBKEY\",
-    \"agreementId\": \"$AGREEMENT_ID\",
-    \"agreementType\": 1,
-    \"visibility\": 0,
-    \"termsHash\": \"$(echo -n 'Agent B performs data analysis for Agent A' | sha256sum | cut -d' ' -f1)\",
-    \"termsUri\": \"https://arweave.net/tx-id-here\",
-    \"numParties\": 2,
-    \"expiresAt\": 0
-  }"
-# → Sign with Agent A's keypair, submit to Solana
-
-# Step 3: Agent A adds Agent B as counterparty
-# (This requires a direct Solana transaction — use the SDK or build manually)
-# The add_party instruction needs: proposer signs, party_identity PDA passed
-
-# Step 4: Agent B signs
-curl -X POST $API/agreements/$AGREEMENT_ID/sign \
-  -H 'Content-Type: application/json' \
-  -d "{\"signerAgentKey\": \"$AGENT_B_PUBKEY\"}"
-# → Sign with Agent B's keypair, submit
-# Agreement is now ACTIVE (both parties signed)
-
-# Step 5: Check status
-curl $API/agreements/$AGREEMENT_ID
-
-# Step 6: When work is done, either party fulfills
-curl -X POST $API/agreements/$AGREEMENT_ID/fulfill \
-  -H 'Content-Type: application/json' \
-  -d "{
-    \"signerKey\": \"$AGENT_A_PUBKEY\",
-    \"signerAgentKey\": \"$AGENT_A_PUBKEY\"
-  }"
-# → Sign and submit. Agreement is now FULFILLED.
-```
-
-## Example Flow: Revenue Share with Terms Hash
-
-```bash
-# Terms document (could be JSON, markdown, anything)
-TERMS='{"type":"revenue_share","split":{"agentA":60,"agentB":40},"duration":"90days"}'
-TERMS_HASH=$(echo -n "$TERMS" | sha256sum | cut -d' ' -f1)
-
-# Upload terms to Arweave/IPFS, get URI
-TERMS_URI="arweave:abc123..."
-
-AGREEMENT_ID=$(openssl rand -hex 16)
-
-curl -X POST $API/agreements/propose \
-  -H 'Content-Type: application/json' \
-  -d "{
-    \"proposerAgentKey\": \"$AGENT_A_PUBKEY\",
-    \"agreementId\": \"$AGREEMENT_ID\",
-    \"agreementType\": 2,
-    \"visibility\": 0,
-    \"termsHash\": \"$TERMS_HASH\",
-    \"termsUri\": \"$TERMS_URI\",
-    \"numParties\": 2,
-    \"expiresAt\": 0
-  }"
-
-# Both parties can verify: download terms from URI, hash, compare to on-chain termsHash
-```
-
----
-
-## Raw Solana Transaction Approach
-
-For agents with direct wallet access (no API needed):
+## PDA Derivation
 
 ```typescript
-import { AAPClient, AgreementType, Visibility, PartyRole } from "@aap/sdk";
-
-// Initialize with your Anchor program
-const client = new AAPClient(program);
-
-// Register
-await client.registerAgent(authorityKeypair.publicKey, {
-  agentKey: agentKeypair.publicKey,
-  metadataHash: new Uint8Array(32),
-  scope: { canSignAgreements: true, canCommitFunds: false, maxCommitLamports: 0, expiresAt: 0 },
-});
-
-// Propose
-const agreementId = crypto.getRandomValues(new Uint8Array(16));
-await client.proposeAgreement(agentKeypair.publicKey, {
-  agreementId,
-  agreementType: AgreementType.Service,
-  visibility: Visibility.Public,
-  termsHash: new Uint8Array(32),
-  termsUri: new Uint8Array(64),
-  numParties: 2,
-  expiresAt: 0,
-});
-
-// Add party + Sign + Fulfill
-await client.addParty(agentAKey.publicKey, {
-  agreementId,
-  partyIdentity: agentBIdentityPDA,
-  role: PartyRole.Counterparty,
-});
-await client.signAgreement(agentBKey.publicKey, agreementId);
-await client.fulfillAgreement(agentAKey.publicKey, agentAKey.publicKey, agreementId);
-```
-
-### PDA Derivation (for manual transaction building)
-
-```typescript
-import { PublicKey } from "@solana/web3.js";
-
-const PROGRAM_ID = new PublicKey("4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe");
+const PROGRAM_ID = new PublicKey("BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ");
 
 // Agent Identity PDA
 const [identityPDA] = PublicKey.findProgramAddressSync(
-  [Buffer.from("agent"), agentPubkey.toBuffer()],
-  PROGRAM_ID
+  [Buffer.from("agent"), agentPubkey.toBuffer()], PROGRAM_ID
 );
 
 // Agreement PDA
 const [agreementPDA] = PublicKey.findProgramAddressSync(
-  [Buffer.from("agreement"), Buffer.from(agreementId)],
-  PROGRAM_ID
+  [Buffer.from("agreement"), Buffer.from(agreementId)], PROGRAM_ID
 );
 
-// Agreement Party PDA
+// Party PDA
 const [partyPDA] = PublicKey.findProgramAddressSync(
-  [Buffer.from("party"), Buffer.from(agreementId), agentIdentityPDA.toBuffer()],
-  PROGRAM_ID
+  [Buffer.from("party"), Buffer.from(agreementId), identityPDA.toBuffer()], PROGRAM_ID
 );
 ```
 
 ---
 
-## Security Considerations
-
-### Delegation Scopes
-- **Always set `expiresAt`** for production agents. An agent with permanent delegation is a liability.
-- **Use `maxCommitLamports`** to cap financial exposure per agreement.
-- **Disable `canCommitFunds`** unless the agent genuinely needs escrow access.
-
-### Human Authority
-- The authority (human wallet) can always:
-  - Update delegation scope
-  - Revoke the agent entirely
-  - Cancel proposed agreements
-  - Fulfill agreements on behalf of the agent
-- Agents **cannot** escalate their own permissions.
-- Sub-agents cannot exceed parent agent's scope.
-
-### Agreement Verification
-- Always verify `termsHash` matches the actual terms document before signing.
-- For private agreements, terms are encrypted off-chain (ECDH + AES-256-GCM).
-- The on-chain `termsHash` is of the **plaintext**, not ciphertext.
-
-### Sub-Agent Limits
-- Maximum 2 levels: Human → Agent → Sub-agent
-- Sub-agent scope must be ≤ parent scope
-- Parent must have `canSignAgreements` to create sub-agents
-
----
+## Security
+- **Always set `expiresAt`** for production agents
+- **Use `maxCommitLamports`** to cap financial exposure
+- Agents **cannot** escalate their own permissions
+- The human authority can always revoke, cancel, or override
 
 ## Costs
-
 | Action | Rent (SOL) | Reclaimable? |
 |--------|-----------|--------------|
-| Register Agent | ~0.00144 | Yes (on revoke) |
-| Propose Agreement | ~0.00315 | Yes (on close) |
-| Add Party | ~0.00089 | Yes (on close) |
-| **Total 2-party agreement** | **~0.00404** | **Fully reclaimable** |
-
-All rent is returned when accounts are closed after fulfillment/cancellation.
+| Register Agent | ~0.00144 | Yes |
+| Propose Agreement | ~0.00315 | Yes |
+| Add Party | ~0.00089 | Yes |
+| **Total 2-party agreement** | **~0.00404** | **Fully** |
