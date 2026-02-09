@@ -83,7 +83,7 @@ export default function AgreementDetailPage() {
             This agreement is encrypted and only visible to its parties.
             Terms, party details, and escrow information are not publicly accessible.
           </p>
-          <div className="mt-8 grid grid-cols-3 gap-6 text-sm max-w-sm mx-auto">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-sm max-w-sm mx-auto">
             <div>
               <div className="text-shell-dim text-xs mb-1">Type</div>
               <div className="text-shell-fg">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</div>
@@ -173,7 +173,7 @@ export default function AgreementDetailPage() {
               return (
                 <div
                   key={party.publicKey.toBase58()}
-                  className="flex items-center justify-between bg-gray-50 rounded-lg p-4 border border-gray-100"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-gray-50 rounded-lg p-4 border border-gray-100"
                 >
                   <div className="flex items-center gap-3">
                     <Link

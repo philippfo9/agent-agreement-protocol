@@ -83,11 +83,11 @@ export default function AgentProfilePage() {
           <div className="w-3 h-3 rounded-full bg-[#333]" />
         </div>
 
-        <div className="flex items-start gap-5 mb-6">
+        <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5 mb-6">
           <PubkeyAvatar pubkey={pubkeyStr} />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Agent Profile</h1>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight">Agent Profile</h1>
               <span
                 className={`text-[11px] font-medium uppercase tracking-wider px-2.5 py-1 rounded-full ${
                   expired
@@ -181,7 +181,7 @@ export default function AgentProfilePage() {
       {/* Stats Grid */}
       <div className="dark-card p-8 mb-8">
         <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Agreement Stats</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {[
             { label: "Proposed", value: proposed, color: "text-gray-400" },
             { label: "Active", value: active, color: "text-gray-300" },

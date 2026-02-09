@@ -118,7 +118,7 @@ export default function ExplorePage() {
               setSearchPubkey(e.target.value);
               setVisibleCount(PAGE_SIZE);
             }}
-            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-input-text placeholder-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 flex-1 min-w-[200px]"
+            className="bg-input border border-input-border rounded-lg px-3 py-2 text-sm text-input-text placeholder-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 flex-1 min-w-0 w-full sm:min-w-[200px]"
           />
         </div>
       </div>

@@ -11,23 +11,23 @@ import { isPubkeyDefault } from "@/lib/utils";
 
 function HeroSection() {
   return (
-    <div className="relative mb-16 py-16 text-center">
+    <div className="relative mb-10 md:mb-16 py-10 md:py-16 text-center">
       {/* Subtle gradient glow */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-white/[0.03] via-white/[0.05] to-white/[0.03] blur-3xl rounded-full" />
       </div>
-      <h1 className="text-5xl font-bold tracking-tight mb-4 text-shell-heading">
+      <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-shell-heading">
         Agent Agreement
         <br />
         <span className="text-gray-400">
           Protocol
         </span>
       </h1>
-      <p className="text-shell-muted text-lg max-w-lg mx-auto leading-relaxed">
+      <p className="text-shell-muted text-base md:text-lg max-w-lg mx-auto leading-relaxed px-2">
         On-chain agent identity, delegation, and binding agreements on Solana.
         Register agents, define scopes, and create <span className="font-serif italic text-shell-fg">enforceable</span> agreements.
       </p>
-      <div className="flex items-center justify-center gap-6 mt-8">
+      <div className="flex items-center justify-center gap-4 md:gap-6 mt-8 flex-wrap">
         <div className="flex items-center gap-3">
           <span className="step-number">01</span>
           <span className="text-sm text-shell-muted">Register</span>
@@ -82,7 +82,7 @@ export default function MyAgentsPage() {
     <div>
       <HeroSection />
 
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-shell-heading">My Agents</h2>
           <p className="text-shell-dim text-sm mt-1">
@@ -124,7 +124,7 @@ export default function MyAgentsPage() {
               <div key={agent.publicKey.toBase58()}>
                 <AgentCard agent={agent} />
                 {children.length > 0 ? (
-                  <div className="ml-10 mt-3 space-y-3 border-l-2 border-shell-border pl-6">
+                  <div className="ml-4 md:ml-10 mt-3 space-y-3 border-l-2 border-shell-border pl-4 md:pl-6">
                     <div className="text-[11px] uppercase tracking-wider text-shell-dim mb-2">Sub-agents</div>
                     {children.map((child) => (
                       <AgentCard

@@ -29,13 +29,13 @@ export default function RootLayout({
       <body className={`${inter.className} bg-shell text-shell-fg min-h-screen transition-colors duration-200`}>
         <Providers>
           <Navbar />
-          <main className="max-w-6xl mx-auto px-6 py-12">
+          <main className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
             <Suspense fallback={<Loading />}>
               {children}
             </Suspense>
           </main>
           <footer className="border-t border-divider mt-24">
-            <div className="max-w-6xl mx-auto px-6 py-8 text-center">
+            <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 text-center">
               <p className="text-sm text-shell-dim">
                 Agent Agreement Protocol — On-chain agent identity & agreements on Solana
               </p>
