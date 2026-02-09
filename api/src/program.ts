@@ -1,7 +1,7 @@
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { Program, AnchorProvider, Wallet, Idl, setProvider } from "@coral-xyz/anchor";
 
-const PROGRAM_ID = new PublicKey("4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe");
+const PROGRAM_ID = new PublicKey("BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ");
 
 // Minimal IDL — just enough for account deserialization.
 // In production, load the full IDL from anchor build output.

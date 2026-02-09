@@ -40,7 +40,7 @@ import {
 } from "../instructions";
 
 export const AGENT_AGREEMENT_PROTOCOL_PROGRAM_ADDRESS =
-  "4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe" as Address<"4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe">;
+  "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ" as Address<"BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ">;
 
 export enum AgentAgreementProtocolAccount {
   AgentIdentity,
@@ -223,7 +223,7 @@ export function identifyAgentAgreementProtocolInstruction(
 }
 
 export type ParsedAgentAgreementProtocolInstruction<
-  TProgram extends string = "4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe",
+  TProgram extends string = "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ",
 > =
   | ({
       instructionType: AgentAgreementProtocolInstruction.AddParty;

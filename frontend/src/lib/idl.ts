@@ -4,7 +4,7 @@
 export const AAP_IDL = {
   version: "0.1.0",
   name: "agent_agreement_protocol",
-  address: "4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe",
+  address: "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ",
   metadata: {
     name: "agent_agreement_protocol",
     version: "0.1.0",

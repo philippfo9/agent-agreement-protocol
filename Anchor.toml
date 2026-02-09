@@ -6,8 +6,8 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-agent_agreement_protocol = "4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe"
-aap_compressed = "CmPr5AEFxgHVZnDAbPr5RCDHm8d7bJjhXDqRTmFSCVkW"
+agent_agreement_protocol = "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ"
+aap_compressed = "Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY"
 
 [registry]
 url = "https://api.apr.dev"
@@ -18,3 +18,7 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+
+[programs.devnet]
+agent_agreement_protocol = "BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ"
+aap_compressed = "Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY"
