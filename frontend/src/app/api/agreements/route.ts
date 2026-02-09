@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { verifyAuthHeaders } from "@/lib/auth";
 
 // POST: Store agreement metadata (called after on-chain proposal)
 export async function POST(request: NextRequest) {
@@ -64,7 +65,6 @@ export async function POST(request: NextRequest) {
 // GET: Fetch agreement metadata (checks access for private agreements)
 export async function GET(request: NextRequest) {
   const pda = request.nextUrl.searchParams.get("pda");
-  const wallet = request.nextUrl.searchParams.get("wallet");
 
   if (!pda) {
     return NextResponse.json({ error: "Missing pda parameter" }, { status: 400 });
@@ -80,20 +80,40 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
 
-    // Private agreement access check
+    // Private agreement access check — requires wallet signature proof
     if (agreement.visibility === 1) {
-      if (!wallet) {
+      const authWallet = request.headers.get("x-wallet");
+      const authSig = request.headers.get("x-signature");
+      const authTs = request.headers.get("x-timestamp");
+
+      if (!authWallet || !authSig) {
         return NextResponse.json({ 
           id: agreement.id,
           agreementPda: agreement.agreementPda,
           visibility: 1,
           private: true,
-          message: "This is a private agreement. Connect your wallet to view."
+          message: "This is a private agreement. Sign with your wallet to view."
         });
       }
 
+      const auth = verifyAuthHeaders({
+        wallet: authWallet,
+        signature: authSig,
+        timestamp: authTs,
+      });
+
+      if (!auth.valid) {
+        return NextResponse.json({
+          id: agreement.id,
+          agreementPda: agreement.agreementPda,
+          visibility: 1,
+          private: true,
+          message: auth.error || "Signature verification failed."
+        }, { status: 401 });
+      }
+
       const isParty = agreement.parties.some(
-        (p) => p.walletPubkey === wallet
+        (p) => p.walletPubkey === auth.wallet
       );
 
       if (!isParty) {
@@ -103,7 +123,7 @@ export async function GET(request: NextRequest) {
           visibility: 1,
           private: true,
           message: "You are not a party to this private agreement."
-        });
+        }, { status: 403 });
       }
     }
 

@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { verifyAuthHeaders } from "@/lib/auth";
 
-// GET: Fetch all agreements where wallet is a party
+// GET: Fetch all agreements where authenticated wallet is a party
 export async function GET(request: NextRequest) {
-  const wallet = request.nextUrl.searchParams.get("wallet");
-  if (!wallet) {
-    return NextResponse.json({ error: "Missing wallet" }, { status: 400 });
+  const auth = verifyAuthHeaders({
+    wallet: request.headers.get("x-wallet"),
+    signature: request.headers.get("x-signature"),
+    timestamp: request.headers.get("x-timestamp"),
+  });
+
+  if (!auth.valid) {
+    return NextResponse.json({ error: auth.error }, { status: 401 });
   }
 
   try {
     const agreements = await prisma.agreement.findMany({
       where: {
         parties: {
-          some: { walletPubkey: wallet },
+          some: { walletPubkey: auth.wallet },
         },
       },
       include: { parties: true },
