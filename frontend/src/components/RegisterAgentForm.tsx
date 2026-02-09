@@ -6,6 +6,7 @@ import { Keypair, SystemProgram } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { AAP_IDL } from "@/lib/idl";
 import { getAgentIdentityPDA } from "@/lib/pda";
+import { formatError } from "@/lib/errors";
 
 interface RegisterAgentFormProps {
   onSuccess: () => void;
@@ -59,7 +60,7 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
 
       onSuccess();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to register agent");
+      setError(formatError(err));
     }
   };
 
@@ -129,8 +130,16 @@ export function RegisterAgentForm({ onSuccess }: RegisterAgentFormProps) {
       </div>
 
       {error ? (
-        <div className="bg-white/5 border border-white/10 rounded-lg p-3.5 text-sm text-gray-400">
-          {error}
+        <div className="bg-white/[0.03] border border-white/10 rounded-lg p-4 text-sm text-shell-muted flex items-start gap-3">
+          <span className="text-base leading-none mt-0.5">⚠️</span>
+          <div>
+            <p>{error}</p>
+            {(error.includes('does not exist') || error.includes('not deployed')) ? (
+              <p className="mt-2 text-xs text-shell-dim">
+                The AAP program may not be deployed on this network yet. Try switching to Devnet.
+              </p>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

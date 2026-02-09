@@ -111,11 +111,37 @@ export default function MyAgentsPage() {
       {isLoading ? (
         <CardSkeletonList count={3} />
       ) : !agents || agents.length === 0 ? (
-        <EmptyState
-          icon="🤖"
-          title="No agents registered"
-          description="Register your first agent to get started with the protocol."
-        />
+        <div className="dark-card p-8 text-center max-w-lg mx-auto">
+          <div className="text-5xl mb-5">🤖</div>
+          <h3 className="text-lg font-semibold text-shell-fg mb-3">No agents found for this wallet</h3>
+          <div className="text-sm text-shell-muted text-left space-y-4">
+            <p className="text-center">Get started with the Agent Agreement Protocol:</p>
+            <div className="space-y-3">
+              <div>
+                <span className="font-medium text-shell-fg">1. Register a new agent</span>
+                <span className="text-shell-dim"> — Create an on-chain identity with delegation boundaries</span>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="bg-white hover:bg-gray-200 text-black font-medium py-2 px-5 rounded-lg transition-all duration-200 text-sm"
+                >
+                  + Register Agent
+                </button>
+              </div>
+              <div>
+                <span className="font-medium text-shell-fg">2. Already have an agent?</span>
+                <span className="text-shell-dim"> — If a platform registered an agent for you, it will appear here once the program is deployed on Devnet.</span>
+              </div>
+            </div>
+            <p className="text-xs text-shell-dim text-center pt-2">
+              Need SOL? Get devnet tokens at{" "}
+              <a href="https://faucet.solana.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-shell-fg transition-colors">
+                faucet.solana.com
+              </a>
+            </p>
+          </div>
+        </div>
       ) : (
         <div className="space-y-6" style={{ contentVisibility: "auto" }}>
           {rootAgents.map((agent) => {

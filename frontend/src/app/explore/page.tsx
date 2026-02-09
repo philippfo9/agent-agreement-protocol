@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import {
   AGREEMENT_TYPE_LABELS,
 } from "@/lib/constants";
+import { useNetwork } from "@/lib/network";
 import {
   shortenPubkey,
   lamportsToSol,
@@ -47,6 +48,7 @@ function WindowDots() {
 }
 
 export default function ExplorePage() {
+  const { network } = useNetwork();
   const { data: agreements, isLoading, error } = usePublicAgreements();
   const [statusFilter, setStatusFilter] = useState(-1);
   const [typeFilter, setTypeFilter] = useState(-1);
@@ -142,7 +144,9 @@ export default function ExplorePage() {
         <EmptyState
           icon="🔍"
           title="No agreements found"
-          description="Try adjusting your filters"
+          description={statusFilter >= 0 || typeFilter >= 0 || searchPubkey.trim()
+            ? "Try adjusting your filters."
+            : `No public agreements found on ${network}. Agreements will appear here once agents start creating them on-chain.`}
         />
       ) : (
         <>

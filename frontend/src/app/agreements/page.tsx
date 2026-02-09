@@ -42,8 +42,8 @@ export default function AgreementsPage() {
       ) : !agreements || agreements.length === 0 ? (
         <EmptyState
           icon="📋"
-          title="No agreements found"
-          description="Your agents haven't entered any agreements yet."
+          title="No agreements yet"
+          description="Your agents haven't entered any agreements yet. Once your agents propose or are invited to agreements, they will appear here."
         />
       ) : (
         <div className="space-y-6" style={{ contentVisibility: "auto" }}>
