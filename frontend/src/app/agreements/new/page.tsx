@@ -48,6 +48,7 @@ export default function NewAgreementPage() {
   const [termsText, setTermsText] = useState("");
   const [expiresInDays, setExpiresInDays] = useState("90");
   const [uploadedDoc, setUploadedDoc] = useState<{ key: string; url: string; hash: string; name: string; size: number; type: string } | null>(null);
+  const [signerName, setSignerName] = useState("");
   const [needsIdentity, setNeedsIdentity] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
@@ -229,6 +230,33 @@ export default function NewAgreementPage() {
       }
 
       const idHex = agreementId.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+      // Save to database (for private agreements + document storage)
+      try {
+        const allPartyWallets = [
+          { walletPubkey: wallet.publicKey!.toBase58(), role: "proposer" },
+          ...validCounterparties.map((cp) => ({ walletPubkey: cp, role: "counterparty" })),
+        ];
+        await fetch("/api/agreements", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            agreementPda: agreementPda.toBase58(),
+            agreementIdHex: idHex,
+            visibility,
+            documentKey: uploadedDoc?.key,
+            documentName: uploadedDoc?.name,
+            documentHash: uploadedDoc?.hash,
+            termsText: termsText || undefined,
+            parties: allPartyWallets,
+            signerName: signerName || undefined,
+            signerWallet: wallet.publicKey!.toBase58(),
+          }),
+        });
+      } catch {
+        // Non-critical — on-chain is the source of truth
+      }
+
       setSuccess({ agreementPda: agreementPda.toBase58(), agreementId: idHex });
     } catch (err: unknown) {
       setError(formatError(err));
@@ -499,6 +527,13 @@ export default function NewAgreementPage() {
               onChange={(e) => setExpiresInDays(e.target.value)}
               className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors"
             />
+          </div>
+
+          {/* Signer name */}
+          <div>
+            <label className="block text-sm text-shell-muted mb-1.5">Your name (for signature)</label>
+            <input type="text" value={signerName} onChange={(e) => setSignerName(e.target.value)} placeholder="e.g. John Smith" className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors" />
+            <p className="text-xs text-shell-dim mt-1">Displayed as your signature on the agreement.</p>
           </div>
 
           {error && (

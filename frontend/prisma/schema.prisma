@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Store agreement metadata that shouldn't be on-chain (private agreements, documents)
+model Agreement {
+  id              String   @id @default(cuid())
+  agreementPda    String   @unique // On-chain PDA
+  agreementIdHex  String   // Hex of the 16-byte agreement ID
+  visibility      Int      @default(0) // 0=public, 1=private
+  
+  // Document storage
+  documentKey     String?  // R2 key for uploaded document
+  documentName    String?  // Original filename
+  documentHash    String?  // SHA-256 hex
+  
+  // Terms text (for private agreements, stored off-chain)
+  termsText       String?  
+  
+  // Parties (wallet pubkeys that can view this agreement)
+  parties         AgreementParty[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([agreementPda])
+}
+
+model AgreementParty {
+  id            String    @id @default(cuid())
+  agreementId   String
+  agreement     Agreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  walletPubkey  String    // The wallet that can view this agreement
+  role          String    @default("party") // proposer, counterparty
+  
+  @@unique([agreementId, walletPubkey])
+  @@index([walletPubkey])
+}
+
+// Signature display names for humans
+model SignerProfile {
+  id            String   @id @default(cuid())
+  walletPubkey  String   @unique
+  displayName   String   // Human-readable name for signatures
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
