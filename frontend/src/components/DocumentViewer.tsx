@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 
 interface DocumentViewerProps {
   documentKey: string;
@@ -8,27 +8,12 @@ interface DocumentViewerProps {
 }
 
 export function DocumentViewer({ documentKey, documentName }: DocumentViewerProps) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, error } = trpc.getDocumentUrl.useQuery(
+    { key: documentKey },
+    { enabled: !!documentKey }
+  );
 
-  useEffect(() => {
-    if (!documentKey) return;
-
-    fetch(`/api/upload?key=${encodeURIComponent(documentKey)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.url) {
-          setUrl(data.url);
-        } else {
-          setError("Could not load document");
-        }
-      })
-      .catch(() => setError("Failed to load document"))
-      .finally(() => setLoading(false));
-  }, [documentKey]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-white/[0.03] border border-white/10 rounded-lg p-8 text-center">
         <div className="text-shell-muted text-sm">Loading document...</div>
@@ -36,14 +21,15 @@ export function DocumentViewer({ documentKey, documentName }: DocumentViewerProp
     );
   }
 
-  if (error || !url) {
+  if (error || !data?.url) {
     return (
       <div className="bg-white/[0.03] border border-white/10 rounded-lg p-8 text-center">
-        <div className="text-shell-muted text-sm">⚠️ {error || "Document not available"}</div>
+        <div className="text-shell-muted text-sm">⚠️ {error?.message || "Document not available"}</div>
       </div>
     );
   }
 
+  const url = data.url;
   const isPdf = documentKey.endsWith(".pdf") || documentName?.endsWith(".pdf");
   const isImage = /\.(png|jpg|jpeg|gif|webp)$/i.test(documentKey) || 
                   /\.(png|jpg|jpeg|gif|webp)$/i.test(documentName || "");

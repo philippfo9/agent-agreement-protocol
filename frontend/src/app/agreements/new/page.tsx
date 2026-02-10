@@ -12,6 +12,7 @@ import { formatError } from "@/lib/errors";
 import { AGREEMENT_TYPE_LABELS } from "@/lib/constants";
 import { AGREEMENT_TEMPLATES } from "@/lib/templates";
 import { DocumentUpload } from "@/components/DocumentUpload";
+import { trpc } from "@/lib/trpc";
 import Link from "next/link";
 
 function randomAgreementId(): number[] {
@@ -52,6 +53,7 @@ export default function NewAgreementPage() {
   const [needsIdentity, setNeedsIdentity] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
+  const createAgreement = trpc.createAgreement.useMutation();
 
   // Auto-select first agent
   useEffect(() => {
@@ -237,21 +239,16 @@ export default function NewAgreementPage() {
           { walletPubkey: wallet.publicKey!.toBase58(), role: "proposer" },
           ...validCounterparties.map((cp) => ({ walletPubkey: cp, role: "counterparty" })),
         ];
-        await fetch("/api/agreements", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            agreementPda: agreementPda.toBase58(),
-            agreementIdHex: idHex,
-            visibility,
-            documentKey: uploadedDoc?.key,
-            documentName: uploadedDoc?.name,
-            documentHash: uploadedDoc?.hash,
-            termsText: termsText || undefined,
-            parties: allPartyWallets,
-            signerName: signerName || undefined,
-            signerWallet: wallet.publicKey!.toBase58(),
-          }),
+        await createAgreement.mutateAsync({
+          agreementPda: agreementPda.toBase58(),
+          agreementIdHex: idHex,
+          visibility,
+          documentKey: uploadedDoc?.key,
+          documentName: uploadedDoc?.name,
+          documentHash: uploadedDoc?.hash,
+          termsText: termsText || undefined,
+          parties: allPartyWallets,
+          signerName: signerName || undefined,
         });
       } catch {
         // Non-critical — on-chain is the source of truth
