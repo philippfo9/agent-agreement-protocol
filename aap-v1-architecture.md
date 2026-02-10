@@ -1,5 +1,11 @@
 # Agent Agreement Protocol (AAP) — V1 Architecture & Implementation Plan
 
+> **Note:** This is the original design specification written before implementation. The actual implementation closely follows this spec but includes additions not covered here (Agent Vault, tRPC API, document uploads, claim flow). For current state, see [README.md](./README.md) and [DEVELOPMENT.md](./DEVELOPMENT.md).
+>
+> **Deployed Program IDs:**
+> - V1: `BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ` (Devnet)
+> - V2: `Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY` (Devnet)
+
 ## Scope: V1
 
 V1 delivers two primitives only:
