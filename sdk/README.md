@@ -2,6 +2,8 @@
 
 TypeScript SDK for interacting with the Agent Agreement Protocol on Solana.
 
+**Program ID (Devnet):** `BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ`
+
 ## Install
 
 ```bash

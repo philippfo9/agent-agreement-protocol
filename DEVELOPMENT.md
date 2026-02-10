@@ -9,8 +9,9 @@ Two implementations exist side by side:
 | | V1 (Standard PDAs) | V2 (Compressed PDAs) |
 |---|---|---|
 | Program | `agent-agreement-protocol` | `aap-compressed` |
-| Program ID | `4G1njguyZNtTTrwoRjTah8MeNGjwNyEsTbA2198sJkDe` | `CmPr5AEFxgHVZnDAbPr5RCDHm8d7bJjhXDqRTmFSCVkW` |
-| Framework | Anchor 0.32.1 | Anchor 0.31.1 + Light SDK 0.18.0 |
+| Program ID | `BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ` | `Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY` |
+| Network | Devnet | Devnet |
+| Framework | Anchor 0.30.1 | Anchor 0.31.1 + Light SDK 0.18.0 |
 | Storage cost | ~$0.60–0.90 per 2-party agreement (rent) | Near zero (ZK compressed Merkle trees) |
 | Escrow support | Yes (SPL token vaults) | No (compressed accounts can't hold tokens) |
 | Test runner | Surfpool + ts-mocha | `cargo test-sbf` + Light prover |
@@ -35,6 +36,12 @@ Two implementations exist side by side:
 - `num_parties` / `num_signed` / `parties_added` — party tracking
 - V1 only: `escrow_vault`, `escrow_mint`, `escrow_total`
 
+**AgentVault** — PDA-based SOL vault for an agent (V1 only).
+- `agent_identity` — the linked AgentIdentity PDA
+- `authority` — human owner
+- `balance` — current SOL balance in lamports
+- Seeds: `["vault", agent_identity]`
+
 **AgreementParty** — Links an agent to an agreement with a role.
 - `agreement` — parent Agreement
 - `agent_identity` — the party's AgentIdentity
@@ -50,7 +57,9 @@ Two implementations exist side by side:
 | Agreement | `["agreement", agreement_id]` |
 | AgreementParty | `["party", agreement_id, agent_identity_address]` |
 
-### Instructions (10 total, identical in both versions)
+### Instructions
+
+**V1 has 12 instructions (V2 has 10 — no vault):**
 
 **Identity Management:**
 1. `register_agent` — Register a new agent identity (authority + agent keypair)
@@ -65,6 +74,10 @@ Two implementations exist side by side:
 8. `cancel_agreement` — Proposer cancels a Proposed agreement
 9. `fulfill_agreement` — Any party marks an Active agreement as Fulfilled
 10. `close_agreement` — Authority closes a terminal agreement (Fulfilled/Cancelled/Breached)
+
+**Vault (V1 only):**
+11. `deposit_to_vault` — Human deposits SOL into agent's PDA vault
+12. `withdraw_from_vault` — Agent withdraws SOL from vault (within max_commit_lamports)
 
 ### Agreement State Machine
 
@@ -89,23 +102,31 @@ agent-agreement-protocol/
 ├── Cargo.toml                      # Workspace root
 ├── aap-v1-architecture.md          # Original design document
 ├── DEVELOPMENT.md                  # This file
+├── README.md                       # Project overview for judges/users
 ├── programs/
 │   ├── agent-agreement-protocol/   # V1 — Standard Anchor PDAs
 │   │   └── src/
-│   │       ├── lib.rs              # Program entrypoint
+│   │       ├── lib.rs              # Program entrypoint (12 instructions)
 │   │       ├── constants.rs        # Status/role/type enums as u8
 │   │       ├── errors.rs           # AapError enum
 │   │       ├── events.rs           # Event structs
-│   │       ├── instructions/       # 10 instruction handlers
-│   │       └── state/              # AgentIdentity, Agreement, AgreementParty
+│   │       ├── instructions/       # 12 instruction handlers (incl. vault)
+│   │       └── state/              # AgentIdentity, AgentVault, Agreement, AgreementParty
 │   └── aap-compressed/            # V2 — Light Protocol compressed accounts
 │       ├── src/
 │       │   ├── lib.rs              # Program entrypoint + Light CPI signer
 │       │   ├── constants.rs        # Same constants as V1
-│       │   ├── errors.rs           # AapError (no escrow errors)
-│       │   ├── instructions/       # Same 10 handlers, adapted for compressed accounts
+│       │   ├── errors.rs           # AapError (no escrow/vault errors)
+│       │   ├── instructions/       # 10 handlers, adapted for compressed accounts
 │       │   └── state/              # Compressed versions (no rent, no bump, no escrow)
 │       └── tests/test.rs           # Integration tests (cargo test-sbf)
+├── frontend/                       # Next.js 14 DocuSign-like explorer (see frontend/README.md)
+├── sdk/                            # TypeScript SDK (see sdk/README.md)
+├── api/                            # REST API wrapper (see api/README.md)
+├── skill/                          # OpenClaw agent skill
+├── scripts/seed-devnet.ts          # Devnet seed data script
+├── clients/ts/                     # Codama-generated TypeScript client
+├── content/                        # Marketing: X content plan, video storyboard
 └── tests/
     └── agent-agreement-protocol.ts # V1 TypeScript integration tests (Surfpool)
 ```
