@@ -10,6 +10,7 @@ import { PhantomWalletAdapter, SolflareWalletAdapter } from "@solana/wallet-adap
 import { NetworkContext, NetworkContextType } from "@/lib/network";
 import { NETWORKS, NetworkName } from "@/lib/constants";
 import { ThemeProvider } from "@/lib/theme";
+import { TrpcProvider } from "@/components/TrpcProvider";
 
 import "@solana/wallet-adapter-react-ui/styles.css";
 
@@ -32,7 +33,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <NetworkContext.Provider value={networkCtx}>
         <ConnectionProvider endpoint={endpoint}>
           <WalletProvider wallets={wallets} autoConnect>
-            <WalletModalProvider>{children}</WalletModalProvider>
+            <WalletModalProvider>
+              <TrpcProvider>{children}</TrpcProvider>
+            </WalletModalProvider>
           </WalletProvider>
         </ConnectionProvider>
       </NetworkContext.Provider>
