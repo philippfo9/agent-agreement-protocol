@@ -94,6 +94,58 @@
   @apply !bg-card !rounded-2xl !border !border-card-border;
 }
 
+.wallet-adapter-modal-wrapper .wallet-adapter-modal-container {
+  background: #141414 !important;
+}
+
+.wallet-adapter-modal-overlay {
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: #141414 !important;
+  color: #e5e5e5 !important;
+}
+
+.wallet-adapter-modal-title {
+  color: #e5e5e5 !important;
+}
+
+.wallet-adapter-modal-list li {
+  background: #1a1a1a !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button {
+  color: #e5e5e5 !important;
+  background: transparent !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button:hover {
+  background: #262626 !important;
+}
+
+.wallet-adapter-modal-list .wallet-adapter-button span {
+  color: #999 !important;
+}
+
+.wallet-adapter-modal-button-close {
+  background: #262626 !important;
+  color: #e5e5e5 !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  background: #333 !important;
+}
+
+.wallet-adapter-modal-middle {
+  background: #141414 !important;
+}
+
+.wallet-adapter-modal-middle-button {
+  background: #1a1a1a !important;
+  color: #e5e5e5 !important;
+}
+
 /* Mobile menu slide-in animation */
 @keyframes slide-in-right {
   from { transform: translateX(100%); }
