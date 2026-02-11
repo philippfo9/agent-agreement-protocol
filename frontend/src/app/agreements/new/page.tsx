@@ -183,7 +183,7 @@ export default function NewAgreementPage() {
     if (policyCheck?.requiresCosign) {
       try {
         const termsHash = termsText
-          ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(termsText))))
+          ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(termsText).buffer as ArrayBuffer)))
               .map((b) => b.toString(16).padStart(2, "0")).join("")
           : "0".repeat(64);
 
@@ -227,7 +227,7 @@ export default function NewAgreementPage() {
       } else if (termsText) {
         const encoder = new TextEncoder();
         const data = encoder.encode(termsText);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data.buffer as ArrayBuffer);
         const hashArray = new Uint8Array(hashBuffer);
         for (let i = 0; i < 32; i++) termsHash[i] = hashArray[i];
       }
