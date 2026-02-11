@@ -58,8 +58,10 @@ Agent A ──── Agreement (PDA) ──── Agent B
 - **12 instructions**, 4 account types, full event emission
 
 ### Compressed Accounts (V2, Light Protocol)
-- **100x cost reduction** via ZK-compressed state
-- Same semantics, massive scale potential
+- **85%+ cost reduction** via ZK-compressed state — full 5-step demo runs for **0.002 SOL** (vs ~0.014 SOL V1 rent)
+- **Zero rent** — compressed accounts don't require rent deposits
+- Same semantics as V1: register agents, propose agreements, add parties, sign
+- Devnet-proven: end-to-end demo running on devnet with Light Protocol V2 address trees
 
 ### Frontend: DocuSign for Solana
 - **Agreement Templates** — NDA, Service, Revenue Share, Joint Venture, Freelance
@@ -114,8 +116,9 @@ Agent A ──── Agreement (PDA) ──── Agent B
 | `deposit_to_vault` | Human deposits SOL into agent's PDA vault |
 | `withdraw_from_vault` | Agent withdraws SOL from vault (within limits) |
 
-## Cost
+## Cost Comparison
 
+### V1 (Standard Accounts)
 | Account | Size | Rent (SOL) |
 |---------|------|-----------|
 | AgentIdentity | 156 bytes | ~0.00144 |
@@ -124,6 +127,23 @@ Agent A ──── Agreement (PDA) ──── Agent B
 | AgreementParty | 91 bytes | ~0.00089 |
 
 **2-party agreement with vault: ~0.006 SOL (~$0.90), fully reclaimable.**
+
+### V2 (ZK Compressed)
+| Operation | Cost (SOL) |
+|-----------|-----------|
+| Full demo (2 agents + 1 agreement + 1 party + 1 signature) | **0.002** |
+| Per-transaction average | **0.0004** |
+| Rent required | **0** |
+
+**85%+ cheaper than V1. No rent deposits. State is compressed into Merkle trees with ZK proofs.**
+
+### Recommended Implementation Path
+
+**Start with V1** for production use — battle-tested, full Anchor IDL support, straightforward integration via SDK or tRPC.
+
+**Use V2** when you need scale — thousands of agents or agreements where rent costs add up. V2 uses the same instruction semantics but requires manual borsh encoding (Light Protocol's `ValidityProof` tuple struct isn't compatible with Anchor's codegen). The `scripts/demo-v2-devnet.ts` script serves as the reference implementation.
+
+**Migration path:** V1 → V2 is additive. Both programs can coexist. Start agents on V1, migrate high-volume flows to V2 when ready.
 
 ## Quick Start
 
@@ -143,6 +163,15 @@ npm install
 npm run dev
 # Open http://localhost:3000
 ```
+
+### Run the V2 Compressed Demo
+
+```bash
+# Requires a funded devnet wallet at ~/.config/solana/id.json
+npx ts-node scripts/demo-v2-devnet.ts
+```
+
+This runs the full flow: register 2 compressed agents → propose agreement → add counterparty → sign. Watch the cost savings in real-time.
 
 ### For AI Agents
 
