@@ -29,7 +29,8 @@ import {
   PublicKey,
   SystemProgram,
   TransactionMessage,
-  VersionedTransaction,
+  Transaction,
+VersionedTransaction,
   TransactionInstruction,
   ComputeBudgetProgram,
   AddressLookupTableAccount,
@@ -44,7 +45,8 @@ const HELIUS_RPC = `https://devnet.helius-rpc.com?api-key=${HELIUS_API_KEY}`;
 const PROGRAM_ID = new PublicKey("Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY");
 // V1 address tree (compatible with current indexer)
 const DEVNET_ADDRESS_TREE = new PublicKey("amt2kaJA14v3urZbZvnc5v2np8jqvc4Z8zDep5wbtzx");
-const DEVNET_ADDRESS_QUEUE = new PublicKey("aq1S9z4reTSQAdgWHGD2zDaS39sjGrAxbR31vxJ2F4F");
+// V2 batched address tree: tree == queue
+const DEVNET_ADDRESS_QUEUE = new PublicKey("amt2kaJA14v3urZbZvnc5v2np8jqvc4Z8zDep5wbtzx");
 // V2 batched state trees (from docs — not returned by getStateTreeInfos which only returns V1)
 const DEVNET_V2_OUTPUT_QUEUE = new PublicKey("oq1na8gojfdUhsfCpyjNt6h4JaDWtHf1yQj4koBWfto");
 
@@ -136,6 +138,164 @@ function encodeRegisterAgent(args: {
   scope.writeBigInt64LE(BigInt(args.scope.expiresAt), 10);
   parts.push(scope);
 
+  return Buffer.concat(parts);
+}
+
+function encodeProof(proof: { compressedProof: { a: number[]; b: number[]; c: number[] } | null }): Buffer[] {
+  const parts: Buffer[] = [];
+  if (proof.compressedProof) {
+    parts.push(Buffer.from([1]));
+    parts.push(Buffer.from(proof.compressedProof.a));
+    parts.push(Buffer.from(proof.compressedProof.b));
+    parts.push(Buffer.from(proof.compressedProof.c));
+  } else {
+    parts.push(Buffer.from([0]));
+  }
+  return parts;
+}
+
+function encodePackedStateTreeInfo(info: { rootIndex: number; proveByIndex: boolean; merkleTreePubkeyIndex: number; queuePubkeyIndex: number; leafIndex: number }): Buffer {
+  const buf = Buffer.alloc(9);
+  buf.writeUInt16LE(info.rootIndex, 0);
+  buf.writeUInt8(info.proveByIndex ? 1 : 0, 2);
+  buf.writeUInt8(info.merkleTreePubkeyIndex, 3);
+  buf.writeUInt8(info.queuePubkeyIndex, 4);
+  buf.writeUInt32LE(info.leafIndex, 5);
+  return buf;
+}
+
+function encodeCompressedAccountMeta(meta: { treeInfo: any; address: number[]; outputStateTreeIndex: number }): Buffer {
+  const parts: Buffer[] = [];
+  parts.push(encodePackedStateTreeInfo(meta.treeInfo));
+  parts.push(Buffer.from(meta.address));
+  parts.push(Buffer.from([meta.outputStateTreeIndex]));
+  return Buffer.concat(parts);
+}
+
+function encodeAgentIdentity(id: any): Buffer {
+  const parts: Buffer[] = [];
+  parts.push(id.authority.toBuffer());
+  parts.push(id.agentKey.toBuffer());
+  parts.push(Buffer.from(id.metadataHash));
+  // scope
+  const scope = Buffer.alloc(18);
+  scope.writeUInt8(id.scope.canSignAgreements ? 1 : 0, 0);
+  scope.writeUInt8(id.scope.canCommitFunds ? 1 : 0, 1);
+  const maxCommit = typeof id.scope.maxCommitLamports === 'bigint' ? id.scope.maxCommitLamports : BigInt(id.scope.maxCommitLamports.toString());
+  const expiresAt = typeof id.scope.expiresAt === 'bigint' ? id.scope.expiresAt : BigInt(id.scope.expiresAt.toString());
+  scope.writeBigUInt64LE(maxCommit, 2);
+  scope.writeBigInt64LE(expiresAt, 10);
+  parts.push(scope);
+  parts.push(id.parent.toBuffer());
+  const ca = Buffer.alloc(8);
+  ca.writeBigInt64LE(BigInt(id.createdAt.toString()), 0);
+  parts.push(ca);
+  return Buffer.concat(parts);
+}
+
+function encodeAddressTreeInfo(info: { addressMerkleTreePubkeyIndex: number; addressQueuePubkeyIndex: number; rootIndex: number }): Buffer {
+  const buf = Buffer.alloc(4);
+  buf.writeUInt8(info.addressMerkleTreePubkeyIndex, 0);
+  buf.writeUInt8(info.addressQueuePubkeyIndex, 1);
+  buf.writeUInt16LE(info.rootIndex, 2);
+  return buf;
+}
+
+function encodeProposeAgreement(args: {
+  proof: any;
+  proposerAccountMeta: any;
+  proposerIdentity: any;
+  agreementAddressTreeInfo: any;
+  partyAddressTreeInfo: any;
+  outputStateTreeIndex: number;
+  agreementId: number[];
+  agreementType: number;
+  visibility: number;
+  termsHash: number[];
+  termsUri: number[];
+  numParties: number;
+  expiresAt: any;
+}): Buffer {
+  // propose_agreement discriminator (sha256("global:propose_agreement")[0..8])
+  const crypto = require("crypto");
+  const disc = crypto.createHash("sha256").update("global:propose_agreement").digest().subarray(0, 8);
+  const parts: Buffer[] = [disc];
+  
+  parts.push(...encodeProof(args.proof));
+  parts.push(encodeCompressedAccountMeta(args.proposerAccountMeta));
+  parts.push(encodeAgentIdentity(args.proposerIdentity));
+  parts.push(encodeAddressTreeInfo(args.agreementAddressTreeInfo));
+  parts.push(encodeAddressTreeInfo(args.partyAddressTreeInfo));
+  parts.push(Buffer.from([args.outputStateTreeIndex]));
+  parts.push(Buffer.from(args.agreementId));
+  parts.push(Buffer.from([args.agreementType]));
+  parts.push(Buffer.from([args.visibility]));
+  parts.push(Buffer.from(args.termsHash));
+  parts.push(Buffer.from(args.termsUri));
+  parts.push(Buffer.from([args.numParties]));
+  const ea = Buffer.alloc(8);
+  ea.writeBigInt64LE(BigInt(args.expiresAt.toString()), 0);
+  parts.push(ea);
+  
+  return Buffer.concat(parts);
+}
+
+function encodeAgreement(a: any): Buffer {
+  const parts: Buffer[] = [];
+  parts.push(Buffer.from(a.agreementId)); // [u8;16]
+  parts.push(Buffer.from([a.agreementType])); // u8
+  parts.push(Buffer.from([a.status])); // u8
+  parts.push(Buffer.from([a.visibility])); // u8
+  parts.push(a.proposer.toBuffer()); // Pubkey
+  parts.push(Buffer.from(a.termsHash)); // [u8;32]
+  parts.push(Buffer.from(a.termsUri)); // [u8;64]
+  parts.push(Buffer.from([a.numParties])); // u8
+  parts.push(Buffer.from([a.numSigned])); // u8
+  parts.push(Buffer.from([a.partiesAdded])); // u8
+  const ca = Buffer.alloc(8); ca.writeBigInt64LE(BigInt(a.createdAt.toString()), 0); parts.push(ca);
+  const ea = Buffer.alloc(8); ea.writeBigInt64LE(BigInt(a.expiresAt.toString()), 0); parts.push(ea);
+  return Buffer.concat(parts);
+}
+
+function encodeParty(p: any): Buffer {
+  const parts: Buffer[] = [];
+  parts.push(Buffer.from(p.agreementAddress)); // [u8;32]
+  parts.push(Buffer.from(p.agentIdentityAddress)); // [u8;32]
+  parts.push(Buffer.from([p.role])); // u8
+  parts.push(Buffer.from([p.signed ? 1 : 0])); // bool
+  const sa = Buffer.alloc(8); sa.writeBigInt64LE(BigInt(p.signedAt.toString()), 0); parts.push(sa);
+  return Buffer.concat(parts);
+}
+
+function makeDisc(name: string): Buffer {
+  const crypto = require("crypto");
+  return crypto.createHash("sha256").update(`global:${name}`).digest().subarray(0, 8);
+}
+
+function encodeAddParty(args: any): Buffer {
+  const parts: Buffer[] = [makeDisc("add_party")];
+  parts.push(...encodeProof(args.proof));
+  parts.push(encodeCompressedAccountMeta(args.proposerAccountMeta));
+  parts.push(encodeAgentIdentity(args.proposerIdentity));
+  parts.push(encodeCompressedAccountMeta(args.agreementAccountMeta));
+  parts.push(encodeAgreement(args.currentAgreement));
+  parts.push(encodeCompressedAccountMeta(args.partyIdentityAccountMeta));
+  parts.push(encodeAgentIdentity(args.partyIdentity));
+  parts.push(encodeAddressTreeInfo(args.partyAddressTreeInfo));
+  parts.push(Buffer.from([args.outputStateTreeIndex]));
+  parts.push(Buffer.from([args.role]));
+  return Buffer.concat(parts);
+}
+
+function encodeSignAgreement(args: any): Buffer {
+  const parts: Buffer[] = [makeDisc("sign_agreement")];
+  parts.push(...encodeProof(args.proof));
+  parts.push(encodeCompressedAccountMeta(args.signerIdentityMeta));
+  parts.push(encodeAgentIdentity(args.signerIdentity));
+  parts.push(encodeCompressedAccountMeta(args.agreementMeta));
+  parts.push(encodeAgreement(args.currentAgreement));
+  parts.push(encodeCompressedAccountMeta(args.partyMeta));
+  parts.push(encodeParty(args.currentParty));
   return Buffer.concat(parts);
 }
 
@@ -240,12 +400,13 @@ function packAccountMeta(
   proofIndex: number,
   remainingAccounts: PublicKey[]
 ): any {
-  const treeIdx = findOrAdd(remainingAccounts, acc.treeInfo.tree);
-  const queueIdx = findOrAdd(remainingAccounts, acc.treeInfo.queue);
+  const SYSOFF = 6; // system accounts count
+  const treeIdx = findOrAdd(remainingAccounts, acc.treeInfo.tree) - SYSOFF;
+  const queueIdx = findOrAdd(remainingAccounts, acc.treeInfo.queue) - SYSOFF;
   const outTree = acc.treeInfo.nextTreeInfo
     ? (acc.treeInfo.nextTreeInfo.queue || acc.treeInfo.nextTreeInfo.tree)
     : (acc.treeInfo.queue || acc.treeInfo.tree);
-  const outIdx = findOrAdd(remainingAccounts, outTree);
+  const outIdx = findOrAdd(remainingAccounts, outTree) - SYSOFF;
   return {
     treeInfo: {
       rootIndex: proofResult.rootIndices[proofIndex],
@@ -292,6 +453,18 @@ async function main() {
 
   const addressTree = DEVNET_ADDRESS_TREE;
 
+  // Fund agent keypairs (they need SOL to sign CPI txs)
+  {
+    const fundTx = new Transaction();
+    fundTx.add(SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: agentA.publicKey, lamports: 1_000_000 }));
+    fundTx.add(SystemProgram.transfer({ fromPubkey: payer.publicKey, toPubkey: agentB.publicKey, lamports: 1_000_000 }));
+    fundTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    fundTx.feePayer = payer.publicKey;
+    fundTx.sign(payer);
+    await connection.sendRawTransaction(fundTx.serialize());
+    console.log("✓ Funded agent keypairs (50k lamports each)");
+  }
+
   // ── Step 1: Register Agent A ──────────────────────────────────────────
   console.log("\n─── Step 1: Register Agent A (compressed) ───");
   const agentASeed = deriveAddressSeedV2([Buffer.from("agent"), agentA.publicKey.toBytes()]);
@@ -329,7 +502,8 @@ async function main() {
 
   // ── Step 3: Propose Agreement ─────────────────────────────────────────
   console.log("\n─── Step 3: Propose Agreement ───");
-  const agreementId = new Uint8Array(16).fill(42);
+  const agreementId = new Uint8Array(16);
+  require("crypto").randomFillSync(agreementId);
   const agreementSeed = deriveAddressSeedV2([Buffer.from("agreement"), Buffer.from(agreementId)]);
   const agreementAddr = deriveAddressV2(agreementSeed, addressTree, PROGRAM_ID);
   const agreementAddrBytes = Array.from(agreementAddr.toBytes());
@@ -435,6 +609,13 @@ async function proposeAgreement(
 ): Promise<string> {
   const proposerAccount = await rpc.getCompressedAccount(bn(proposerAddr.toBytes()));
   if (!proposerAccount) throw new Error("Proposer not found in indexer");
+  
+  // Debug: verify identity data
+  const identity = deserializeAgentIdentity(proposerAccount.data);
+  console.log(`  Proposer authority: ${identity.authority.toBase58()}`);
+  console.log(`  Proposer agent_key: ${identity.agentKey.toBase58()}`);
+  console.log(`  Signer (agentSigner): ${agentSigner.publicKey.toBase58()}`);
+  console.log(`  Match: ${identity.agentKey.equals(agentSigner.publicKey)}`);
 
   const proofResult = await rpc.getValidityProofV0(
     [{ hash: proposerAccount.hash, tree: proposerAccount.treeInfo.tree, queue: proposerAccount.treeInfo.queue }],
@@ -446,12 +627,12 @@ async function proposeAgreement(
 
   const remainingAccounts = buildSystemRemainingAccounts();
   const proposerMeta = packAccountMeta(proposerAccount, proposerAddrBytes, proofResult, 0, remainingAccounts);
-  const addrTreeIdx = findOrAdd(remainingAccounts, addressTree);
+  const addrTreeIdx = findOrAdd(remainingAccounts, addressTree) - 6;
 
   const termsUri = new Uint8Array(64);
   Buffer.from("ipfs://QmDemo").copy(Buffer.from(termsUri.buffer));
 
-  const data = encodeInstruction("propose_agreement", {
+  const data = encodeProposeAgreement({
     proof: packProof(proofResult),
     proposerAccountMeta: proposerMeta,
     proposerIdentity: deserializeAgentIdentity(proposerAccount.data),
@@ -514,9 +695,9 @@ async function addParty(
   const pm0 = packAccountMeta(proposerAcc, proposerAddrBytes, proofResult, 0, remainingAccounts);
   const pm1 = packAccountMeta(agreementAcc, agreementAddrBytes, proofResult, 1, remainingAccounts);
   const pm2 = packAccountMeta(partyIdAcc, partyIdentityAddrBytes, proofResult, 2, remainingAccounts);
-  const addrTreeIdx = findOrAdd(remainingAccounts, addressTree);
+  const addrTreeIdx = findOrAdd(remainingAccounts, addressTree) - 6;
 
-  const data = encodeInstruction("add_party", {
+  const data = encodeAddParty({
     proof: packProof(proofResult),
     proposerAccountMeta: pm0,
     proposerIdentity: deserializeAgentIdentity(proposerAcc.data),
@@ -572,7 +753,7 @@ async function signAgreementFn(
   const am = packAccountMeta(agreementAcc, agreementAddrBytes, proofResult, 1, remainingAccounts);
   const pm = packAccountMeta(partyAcc, partyAddrBytes, proofResult, 2, remainingAccounts);
 
-  const data = encodeInstruction("sign_agreement", {
+  const data = encodeSignAgreement({
     proof: packProof(proofResult),
     signerIdentityMeta: sm,
     signerIdentity: deserializeAgentIdentity(signerAcc.data),
