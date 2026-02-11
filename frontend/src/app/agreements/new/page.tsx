@@ -54,6 +54,27 @@ export default function NewAgreementPage() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const createAgreement = trpc.createAgreement.useMutation();
+  const createDraft = trpc.createDraft.useMutation();
+  const [draftSuccess, setDraftSuccess] = useState(false);
+  const [policyViolation, setPolicyViolation] = useState<string | null>(null);
+
+  // Map numeric agreement type to string for policy check
+  const typeMap: Record<number, string> = { 0: "safe", 1: "service", 2: "revenue-share", 3: "partnership", 4: "custom" };
+
+  // Fetch policy for selected agent
+  const { data: policyCheck } = trpc.checkPolicy.useQuery(
+    {
+      agentPubkey: selectedAgent,
+      agreementType: typeMap[agreementType] ?? "custom",
+      durationDays: parseInt(expiresInDays) || null,
+    },
+    { enabled: !!selectedAgent }
+  );
+
+  const { data: agentPolicy } = trpc.getPolicy.useQuery(
+    { agentPubkey: selectedAgent },
+    { enabled: !!selectedAgent }
+  );
 
   // Auto-select first agent
   useEffect(() => {
@@ -150,6 +171,40 @@ export default function NewAgreementPage() {
     const validCounterparties = counterparties.filter((k) => k.trim());
     if (!wallet.publicKey || !wallet.signTransaction || !selectedAgent || validCounterparties.length === 0) return;
     setError(null);
+    setPolicyViolation(null);
+
+    // Check policy constraints
+    if (policyCheck && !policyCheck.allowed) {
+      setPolicyViolation(policyCheck.violations.join("\n"));
+      return;
+    }
+
+    // If cosign required, create draft instead
+    if (policyCheck?.requiresCosign) {
+      try {
+        const termsHash = termsText
+          ? Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(termsText))))
+              .map((b) => b.toString(16).padStart(2, "0")).join("")
+          : "0".repeat(64);
+
+        await createDraft.mutateAsync({
+          agentPubkey: selectedAgent,
+          agreementType: typeMap[agreementType] ?? "custom",
+          counterpartyPubkey: validCounterparties[0] || null,
+          termsHash,
+          termsUri: uploadedDoc?.key ?? null,
+          isPublic: visibility === 0,
+          durationDays: parseInt(expiresInDays) || null,
+          title: signerName || null,
+          description: termsText.slice(0, 200) || null,
+        });
+        setDraftSuccess(true);
+        return;
+      } catch (err: unknown) {
+        setError(formatError(err));
+        return;
+      }
+    }
 
     try {
       const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
@@ -271,6 +326,26 @@ export default function NewAgreementPage() {
     );
   }
 
+  if (draftSuccess) {
+    return (
+      <div className="max-w-2xl mx-auto py-16">
+        <div className="dark-card p-8 text-center">
+          <div className="text-5xl mb-4">📋</div>
+          <h1 className="text-2xl font-bold text-shell-heading mb-2">Agreement Submitted for Approval</h1>
+          <p className="text-shell-muted text-sm mb-6">
+            This agent requires human cosign. Your agreement proposal has been submitted as a draft and is awaiting approval from the agent&apos;s authority.
+          </p>
+          <Link
+            href="/agreements"
+            className="bg-white hover:bg-gray-200 text-black font-medium py-2.5 px-6 rounded-lg transition-all inline-block"
+          >
+            View My Agreements →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (success) {
     return (
       <div className="max-w-2xl mx-auto py-16">
@@ -319,6 +394,14 @@ export default function NewAgreementPage() {
           Create a binding on-chain agreement. Works for both AI agents and humans — like DocuSign on Solana.
         </p>
       </div>
+
+      {/* Policy cosign banner */}
+      {agentPolicy?.requireHumanCosign && selectedAgent ? (
+        <div className="bg-[#111111] border border-[#2a2a2a] rounded-lg p-4 mb-6 flex items-start gap-3 text-sm text-gray-400">
+          <span>⚠️</span>
+          <p>This agent requires human approval for new agreements. Your proposal will be submitted as a draft for review.</p>
+        </div>
+      ) : null}
 
       {needsIdentity ? (
         <div className="dark-card p-8 text-center">
@@ -532,6 +615,16 @@ export default function NewAgreementPage() {
             <input type="text" value={signerName} onChange={(e) => setSignerName(e.target.value)} placeholder="e.g. John Smith" className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text placeholder:text-shell-dim focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/10 transition-colors" />
             <p className="text-xs text-shell-dim mt-1">Displayed as your signature on the agreement.</p>
           </div>
+
+          {policyViolation ? (
+            <div className="bg-[#111111] border border-[#2a2a2a] rounded-lg p-4 text-sm text-gray-400 flex items-start gap-3">
+              <span>🚫</span>
+              <div>
+                <p className="font-medium text-white mb-1">Policy Violation</p>
+                <p className="whitespace-pre-line">{policyViolation}</p>
+              </div>
+            </div>
+          ) : null}
 
           {error && (
             <div className="bg-white/[0.03] border border-white/10 rounded-lg p-4 text-sm text-shell-muted flex items-start gap-3">

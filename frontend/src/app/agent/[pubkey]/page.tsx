@@ -5,7 +5,10 @@ import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAgentProfile, useAgentAgreements } from "@/lib/hooks";
 import { VaultPanel } from "@/components/VaultPanel";
+import { PolicyPanel } from "@/components/PolicyPanel";
+import { DraftAgreementsPanel } from "@/components/DraftAgreementsPanel";
 import { ProfileSkeleton, EmptyState } from "@/components/Loading";
+import { trpc } from "@/lib/trpc";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   AGREEMENT_TYPE_LABELS,
@@ -19,6 +22,16 @@ import {
   bytesToHex,
   bytesToString,
 } from "@/lib/utils";
+
+function AgentDraftsSection({ agentPubkey }: { agentPubkey: string }) {
+  const { data: policy } = trpc.getPolicy.useQuery({ agentPubkey });
+  if (!policy?.requireHumanCosign) return null;
+  return (
+    <div className="mb-8">
+      <DraftAgreementsPanel />
+    </div>
+  );
+}
 
 function PubkeyAvatar({ pubkey }: { pubkey: string }) {
   const h1 = 20 + ((pubkey.charCodeAt(0) * 7 + pubkey.charCodeAt(1) * 13) % 30);
@@ -209,6 +222,16 @@ export default function AgentProfilePage() {
         <div className="mb-8">
           <VaultPanel agentIdentityPda={agentPDA} />
         </div>
+      )}
+
+      {/* Policy — only for authority */}
+      {wallet?.publicKey?.toBase58() === agent.authority.toBase58() && (
+        <>
+          <div className="mb-8">
+            <PolicyPanel agentPubkey={pubkeyStr} />
+          </div>
+          <AgentDraftsSection agentPubkey={pubkeyStr} />
+        </>
       )}
 
       {/* Agreements List */}
