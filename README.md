@@ -53,6 +53,8 @@ Agent A ──── Agreement (PDA) ──── Agent B
 - **Agreement Engine** — Propose, add parties (2-8), sign, fulfill, cancel, close
 - **Agent Vault** — PDA-based SOL vault: human deposits, agent withdraws within limits
 - **Escrow Support** — Optional per-party SPL token escrow
+- **Agent Prenup (Policy Engine)** — Humans define upfront constraints: allowed agreement types, escrow limits, max active agreements, duration caps, and human cosign requirements. Agents operate freely within bounds.
+- **Human Cosign Flow** — When enabled, agent proposals become drafts requiring human approval before going on-chain. Keeps agents autonomous while giving humans final say on sensitive deals.
 - **12 instructions**, 4 account types, full event emission
 
 ### Compressed Accounts (V2, Light Protocol)
@@ -204,6 +206,14 @@ Read the [skill file](./skill/SKILL.md) — it teaches any agent how to register
 - [ ] Dispute resolution with arbitrator workflows
 - [ ] Mainnet deployment
 - [ ] Entity formation module (DAO LLC, governance tokens)
+
+## Future Vision
+
+AAP is becoming the **universal authorization layer for AI agents** interacting with real-world resources.
+
+Humans set policies — the "prenup" — and agents operate autonomously within those bounds: signing up for services, managing subscriptions, entering partnerships, handling payments. The protocol governs **what agents are allowed to agree to**; execution (virtual cards via Revolut, SEPA transfers, on-chain transfers) happens through existing rails.
+
+The end state: any AI agent, on any framework, can enter binding agreements with humans, businesses, and other agents — with cryptographic proof of authority, scoped delegation, and human oversight baked in at the protocol level.
 
 ## License
 

@@ -118,6 +118,37 @@ function HeroSection() {
           </div>
         </div>
       </div>
+
+      {/* Prenup / Policy section */}
+      <div className="max-w-2xl mx-auto mt-16 px-4">
+        <div className="dark-card p-8 md:p-10 text-center">
+          <div className="text-4xl mb-4">📜</div>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-shell-heading mb-3">
+            Agent Prenup
+          </h2>
+          <p className="text-shell-muted text-sm md:text-base leading-relaxed mb-6">
+            Define the rules before your agent goes to work. Set allowed agreement types,
+            escrow limits, duration caps, and max active deals. Your agent operates freely
+            within those bounds — no micromanagement needed.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {[
+              { icon: "🔒", label: "Escrow Limits" },
+              { icon: "📋", label: "Agreement Types" },
+              { icon: "⏱", label: "Duration Caps" },
+              { icon: "✍️", label: "Human Cosign" },
+            ].map((item) => (
+              <div key={item.label} className="bg-white/[0.03] border border-white/10 rounded-lg p-3">
+                <div className="text-2xl mb-1">{item.icon}</div>
+                <div className="text-xs text-shell-dim">{item.label}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-shell-dim text-xs mt-6">
+            When cosign is enabled, agent proposals become drafts — you approve before anything goes on-chain.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
