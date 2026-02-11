@@ -19,6 +19,8 @@ import {
   defaultStaticAccounts,
   defaultStaticAccountsStruct,
   toAccountMetas,
+  deriveAddressV2,
+  deriveAddressSeedV2,
 } from "@lightprotocol/stateless.js";
 import { keccak256 } from "js-sha3";
 import {
@@ -40,32 +42,13 @@ import * as path from "path";
 const HELIUS_API_KEY = "0a24352c-be73-4d0e-9777-38bfde485853";
 const HELIUS_RPC = `https://devnet.helius-rpc.com?api-key=${HELIUS_API_KEY}`;
 const PROGRAM_ID = new PublicKey("Ey56W7XXaeLm2kYNt5Ewp6TfgWgpVEZ2DD23ernmfuxY");
-// V1 address tree (treeType 2 = batched, works with indexer)
-const DEVNET_ADDRESS_TREE = new PublicKey("amt1Ayt45jfbdw5YSo7iz6WZxUmnZsQTYXy82hVwyC2");
+// V1 address tree (compatible with current indexer)
+const DEVNET_ADDRESS_TREE = new PublicKey("amt2kaJA14v3urZbZvnc5v2np8jqvc4Z8zDep5wbtzx");
 const DEVNET_ADDRESS_QUEUE = new PublicKey("aq1S9z4reTSQAdgWHGD2zDaS39sjGrAxbR31vxJ2F4F");
 // V2 batched state trees (from docs — not returned by getStateTreeInfos which only returns V1)
 const DEVNET_V2_OUTPUT_QUEUE = new PublicKey("oq1na8gojfdUhsfCpyjNt6h4JaDWtHf1yQj4koBWfto");
 
-// ── V2 Address Derivation (matches light_sdk::address::v2) ──────────────
-function hashvToBn254(slices: Uint8Array[]): Uint8Array {
-  // keccak256(slices... || [0xFF]), then set first byte to 0
-  const hasher = keccak256.create();
-  for (const s of slices) hasher.update(s);
-  hasher.update(new Uint8Array([0xFF])); // HASH_TO_FIELD_SIZE_SEED
-  const hash = new Uint8Array(hasher.arrayBuffer());
-  hash[0] = 0; // truncate to BN254 field
-  return hash;
-}
-
-function deriveAddressSeedV2(seeds: Uint8Array[]): Uint8Array {
-  return hashvToBn254(seeds);
-}
-
-function deriveAddressV2(seeds: Uint8Array[], addressTree: PublicKey, programId: PublicKey): { address: PublicKey; seed: Uint8Array } {
-  const seed = deriveAddressSeedV2(seeds);
-  const address = hashvToBn254([seed, addressTree.toBytes(), programId.toBytes()]);
-  return { address: new PublicKey(address), seed };
-}
+// Using V1 address derivation functions to match the deployed program
 const STATE_TREE_LOOKUP_TABLE = new PublicKey("qAJZMgnQJ8G6vA3WRcjD9Jan1wtKkaCFWLWskxJrR5V");
 
 // Force V2 mode
@@ -311,14 +294,14 @@ async function main() {
 
   // ── Step 1: Register Agent A ──────────────────────────────────────────
   console.log("\n─── Step 1: Register Agent A (compressed) ───");
-  const { address: agentAAddr, seed: agentASeed } = deriveAddressV2([Buffer.from("agent"), agentA.publicKey.toBytes()], addressTree, PROGRAM_ID);
+  const agentASeed = deriveAddressSeedV2([Buffer.from("agent"), agentA.publicKey.toBytes()]);
+  const agentAAddr = deriveAddressV2(agentASeed, addressTree, PROGRAM_ID);
   const agentAAddrBytes = Array.from(agentAAddr.toBytes());
   console.log(`  Address: ${agentAAddr.toBase58()}`);
 
   // Debug: verify address derivation
   {
-    const seed = deriveAddressSeedV2([Buffer.from("agent"), Buffer.from(agentA.publicKey.toBytes())]);
-    console.log(`  Seed: [${Array.from(seed).join(', ')}]`);
+    console.log(`  Seed: [${Array.from(agentASeed).join(', ')}]`);
     console.log(`  Tree: ${addressTree.toBase58()} [${Array.from(addressTree.toBytes()).join(', ')}]`);
     console.log(`  ProgramId: ${PROGRAM_ID.toBase58()} [${Array.from(PROGRAM_ID.toBytes()).join(', ')}]`);
     console.log(`  Address: [${Array.from(agentAAddr.toBytes()).join(', ')}]`);
@@ -331,7 +314,8 @@ async function main() {
 
   // ── Step 2: Register Agent B ──────────────────────────────────────────
   console.log("\n─── Step 2: Register Agent B (compressed) ───");
-  const { address: agentBAddr, seed: agentBSeed } = deriveAddressV2([Buffer.from("agent"), agentB.publicKey.toBytes()], addressTree, PROGRAM_ID);
+  const agentBSeed = deriveAddressSeedV2([Buffer.from("agent"), agentB.publicKey.toBytes()]);
+  const agentBAddr = deriveAddressV2(agentBSeed, addressTree, PROGRAM_ID);
   const agentBAddrBytes = Array.from(agentBAddr.toBytes());
   console.log(`  Address: ${agentBAddr.toBase58()}`);
 
@@ -346,11 +330,12 @@ async function main() {
   // ── Step 3: Propose Agreement ─────────────────────────────────────────
   console.log("\n─── Step 3: Propose Agreement ───");
   const agreementId = new Uint8Array(16).fill(42);
-  const { address: agreementAddr, seed: agreementSeed } = deriveAddressV2([Buffer.from("agreement"), Buffer.from(agreementId)], addressTree, PROGRAM_ID);
+  const agreementSeed = deriveAddressSeedV2([Buffer.from("agreement"), Buffer.from(agreementId)]);
+  const agreementAddr = deriveAddressV2(agreementSeed, addressTree, PROGRAM_ID);
   const agreementAddrBytes = Array.from(agreementAddr.toBytes());
 
-  const { address: proposerPartyAddr, seed: proposerPartySeed } = deriveAddressV2(
-    [Buffer.from("party"), Buffer.from(agreementId), agentAAddr.toBytes()], addressTree, PROGRAM_ID);
+  const proposerPartySeed = deriveAddressSeedV2([Buffer.from("party"), Buffer.from(agreementId), agentAAddr.toBytes()]);
+  const proposerPartyAddr = deriveAddressV2(proposerPartySeed, addressTree, PROGRAM_ID);
 
   sig = await proposeAgreement(rpc, connection, payer, agentA, agentAAddr, agentAAddrBytes,
     agreementId, agreementAddr, agreementAddrBytes, proposerPartyAddr, addressTree, lookupTableAccount);
@@ -361,8 +346,8 @@ async function main() {
 
   // ── Step 4: Add Party ─────────────────────────────────────────────────
   console.log("\n─── Step 4: Add Agent B as counterparty ───");
-  const { address: cpPartyAddr, seed: cpPartySeed } = deriveAddressV2(
-    [Buffer.from("party"), Buffer.from(agreementId), agentBAddr.toBytes()], addressTree, PROGRAM_ID);
+  const cpPartySeed = deriveAddressSeedV2([Buffer.from("party"), Buffer.from(agreementId), agentBAddr.toBytes()]);
+  const cpPartyAddr = deriveAddressV2(cpPartySeed, addressTree, PROGRAM_ID);
 
   sig = await addParty(rpc, connection, payer, agentA, agentAAddr, agentAAddrBytes,
     agentBAddr, agentBAddrBytes, agreementAddr, agreementAddrBytes, agreementId,

@@ -150,10 +150,10 @@
     bn.js "^5.2.1"
     buffer "6.0.3"
 
-"@lightprotocol/stateless.js@^0.22.0", "@lightprotocol/stateless.js@0.22.0":
-  version "0.22.0"
-  resolved "https://registry.npmjs.org/@lightprotocol/stateless.js/-/stateless.js-0.22.0.tgz"
-  integrity sha512-2I7g/pIq/Bbm6Qax1djT4TEwBHmGWJpvhF2pdRyyO6k3f4a1ZR3hDdesbpZ99FPH7LysiCcMR1cJvVjw39ZNfA==
+"@lightprotocol/stateless.js@^0.23.0-beta.5", "@lightprotocol/stateless.js@0.22.0":
+  version "0.23.0-beta.5"
+  resolved "https://registry.npmjs.org/@lightprotocol/stateless.js/-/stateless.js-0.23.0-beta.5.tgz"
+  integrity sha512-r8scroPiZ2kae3HQsqIqeeKNERH8/IW9ZvX/l+Bb82ioSBWnPTU+OVA7Kalaj7VPrLbhsXt4U971/QClnDakGg==
   dependencies:
     "@coral-xyz/borsh" "^0.29.0"
     "@noble/hashes" "1.5.0"
