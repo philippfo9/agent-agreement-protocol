@@ -42,6 +42,49 @@ model AgreementParty {
   @@index([walletPubkey])
 }
 
+// Agent policy constraints (prenup)
+model AgentPolicy {
+  id                    String   @id @default(cuid())
+  agentPubkey           String   // the agent identity pubkey
+  authorityWallet       String   // human wallet that set this policy
+  
+  // Constraints
+  allowedTypes          String[] // agreement types: "service", "partnership", "revenue-share", "safe", "custom"
+  maxEscrowLamports     BigInt?  // max escrow per agreement (null = no limit)
+  maxActiveAgreements   Int?     // max concurrent agreements (null = no limit)
+  requireHumanCosign    Boolean  @default(false) // if true, agent proposals need human approval
+  maxDurationDays       Int?     // max agreement duration in days (null = no limit)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([agentPubkey])
+}
+
+// Draft agreements pending human approval
+model DraftAgreement {
+  id                    String   @id @default(cuid())
+  agentPubkey           String   // proposing agent
+  authorityWallet       String   // human who needs to approve
+  
+  // Agreement details (mirrors on-chain fields)
+  agreementType         String
+  counterpartyPubkey    String?
+  termsHash             String
+  termsUri              String?
+  isPublic              Boolean  @default(true)
+  escrowAmount          BigInt?
+  durationDays          Int?
+  title                 String?
+  description           String?
+  
+  status                String   @default("pending") // pending, approved, rejected, expired
+  rejectionReason       String?
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
 // Signature display names for humans
 model SignerProfile {
   id            String   @id @default(cuid())
