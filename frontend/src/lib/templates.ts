@@ -1,3 +1,11 @@
+export const TEMPLATE_PDFS: Record<string, string> = {
+  "Non-Disclosure Agreement (NDA)": "/templates/nda-template.pdf",
+  "Service Agreement": "/templates/service-agreement-template.pdf",
+  "Revenue Share Agreement": "/templates/revenue-share-template.pdf",
+  "Joint Venture Agreement": "/templates/joint-venture-template.pdf",
+  "Freelance Contract": "/templates/freelance-contract-template.pdf",
+};
+
 export const AGREEMENT_TEMPLATES = [
   {
     name: "Non-Disclosure Agreement (NDA)",
