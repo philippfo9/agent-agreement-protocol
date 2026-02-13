@@ -1,49 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Connection, PublicKey, Keypair } from "@solana/web3.js";
 import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
-// @ts-expect-error pdfkit types
-import PDFDocument from "pdfkit";
+import { jsPDF } from "jspdf";
 
 const PROGRAM_ID = new PublicKey("BzHyb5Eevigb6cyfJT5cd27zVhu92sY5isvmHUYe6NwZ");
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 
 const AGREEMENT_TYPE_LABELS: Record<number, string> = {
-  0: "Generic",
-  1: "Service Agreement",
-  2: "Revenue Share",
-  3: "Joint Venture",
-  4: "Custom / NDA",
+  0: "Generic", 1: "Service Agreement", 2: "Revenue Share", 3: "Joint Venture", 4: "Custom / NDA",
 };
-
 const ROLE_LABELS: Record<number, string> = {
-  0: "Proposer",
-  1: "Counterparty",
-  2: "Witness",
-  3: "Arbitrator",
+  0: "Proposer", 1: "Counterparty", 2: "Witness", 3: "Arbitrator",
 };
-
 const STATUS_LABELS: Record<number, string> = {
-  0: "Proposed",
-  1: "Active",
-  2: "Fulfilled",
-  3: "Breached",
-  4: "Disputed",
-  5: "Cancelled",
+  0: "Proposed", 1: "Active", 2: "Fulfilled", 3: "Breached", 4: "Disputed", 5: "Cancelled",
 };
 
 function shortenPubkey(key: string, chars = 8): string {
   return `${key.slice(0, chars)}...${key.slice(-chars)}`;
 }
-
 function formatDate(timestamp: number): string {
   if (timestamp === 0) return "N/A";
   return new Date(timestamp * 1000).toISOString().replace("T", " ").slice(0, 19) + " UTC";
 }
-
 function bytesToHex(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
-
 function bytesToString(bytes: number[]): string {
   return Buffer.from(bytes).toString("utf-8").replace(/\0/g, "").trim();
 }
@@ -66,20 +48,16 @@ export async function GET(request: NextRequest) {
     };
     const provider = new AnchorProvider(connection, dummyWallet as any, { commitment: "confirmed" });
 
-    // Load IDL dynamically
     const idlModule = await import("@/lib/idl");
     const program = new Program(idlModule.AAP_IDL as any as Idl, provider);
 
-    // Fetch agreement
     const agreementKey = new PublicKey(agreementPda);
     const agreement = await (program.account as any).agreement.fetch(agreementKey);
 
-    // Fetch all parties
     const allParties = await (program.account as any).agreementParty.all([
       { memcmp: { offset: 8, bytes: agreementKey.toBase58() } },
     ]);
 
-    // Fetch identity data for each party
     const partiesWithIdentity = await Promise.all(
       allParties.map(async (p: any) => {
         try {
@@ -91,8 +69,7 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    // Generate PDF
-    const pdfBuffer = await generateSignedPDF(agreement, partiesWithIdentity, agreementPda);
+    const pdfBuffer = generateSignedPDF(agreement, partiesWithIdentity, agreementPda);
 
     return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,
@@ -107,155 +84,158 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function generateSignedPDF(
+function generateSignedPDF(
   agreement: any,
   parties: { party: any; identity: any }[],
   pdaStr: string
-): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
-    const chunks: Buffer[] = [];
-    doc.on("data", (chunk: Buffer) => chunks.push(chunk));
-    doc.on("end", () => resolve(Buffer.concat(chunks)));
-    doc.on("error", reject);
+): Buffer {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pw = 210; // page width mm
+  const margin = 20;
+  const contentWidth = pw - 2 * margin;
+  let y = 20;
 
-    const typeLabel = AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Agreement";
-    const statusLabel = STATUS_LABELS[agreement.status] ?? "Unknown";
-    const idHex = bytesToHex(Array.from(agreement.agreementId));
-    const termsHash = bytesToHex(Array.from(agreement.termsHash));
-    const termsUri = bytesToString(Array.from(agreement.termsUri));
+  const typeLabel = AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Agreement";
+  const statusLabel = STATUS_LABELS[agreement.status] ?? "Unknown";
+  const idHex = bytesToHex(Array.from(agreement.agreementId));
+  const termsHash = bytesToHex(Array.from(agreement.termsHash));
+  const termsUri = bytesToString(Array.from(agreement.termsUri));
 
-    // ── Header ──
-    doc.fontSize(9).fillColor("#888").text("AGENT AGREEMENT PROTOCOL", { align: "center" });
-    doc.fontSize(8).fillColor("#aaa").text("On-chain Agreement Record — Solana Devnet", { align: "center" });
-    doc.moveDown(0.8);
+  // Header
+  doc.setFontSize(8).setTextColor(136, 136, 136);
+  doc.text("AGENT AGREEMENT PROTOCOL", pw / 2, y, { align: "center" });
+  y += 4;
+  doc.setFontSize(7).setTextColor(170, 170, 170);
+  doc.text("On-chain Agreement Record — Solana Devnet", pw / 2, y, { align: "center" });
+  y += 10;
 
-    // Title
-    doc.fontSize(22).fillColor("#000").text(typeLabel.toUpperCase(), { align: "center" });
-    doc.moveDown(0.3);
+  // Title
+  doc.setFontSize(20).setTextColor(0, 0, 0).setFont("helvetica", "bold");
+  doc.text(typeLabel.toUpperCase(), pw / 2, y, { align: "center" });
+  y += 8;
 
-    // Status badge
-    const statusColor = agreement.status === 1 ? "#16a34a" : agreement.status === 2 ? "#2563eb" : agreement.status === 0 ? "#ca8a04" : "#dc2626";
-    doc.fontSize(11).fillColor(statusColor).text(`Status: ${statusLabel}`, { align: "center" });
-    doc.moveDown(0.5);
+  // Status
+  const sc = agreement.status === 1 ? [22, 163, 74] : agreement.status === 2 ? [37, 99, 235] : agreement.status === 0 ? [202, 138, 4] : [220, 38, 38];
+  doc.setFontSize(11).setTextColor(sc[0], sc[1], sc[2]).setFont("helvetica", "normal");
+  doc.text(`Status: ${statusLabel}`, pw / 2, y, { align: "center" });
+  y += 6;
 
-    // Divider
-    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#ddd").stroke();
-    doc.moveDown(0.8);
+  // Divider
+  doc.setDrawColor(220, 220, 220).line(margin, y, pw - margin, y);
+  y += 8;
 
-    // ── Agreement Details ──
-    doc.fontSize(12).fillColor("#000").text("AGREEMENT DETAILS", { underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(10).fillColor("#333");
+  // Agreement Details
+  doc.setFontSize(12).setTextColor(0, 0, 0).setFont("helvetica", "bold");
+  doc.text("AGREEMENT DETAILS", margin, y);
+  y += 7;
 
-    const details = [
-      ["Agreement ID:", idHex],
-      ["Agreement PDA:", pdaStr],
-      ["Type:", typeLabel],
-      ["Visibility:", agreement.visibility === 0 ? "Public" : "Private"],
-      ["Created:", formatDate(agreement.createdAt.toNumber())],
-      ["Expires:", agreement.expiresAt.toNumber() > 0 ? formatDate(agreement.expiresAt.toNumber()) : "No expiration"],
-      ["Parties:", `${agreement.numSigned}/${agreement.numParties} signed`],
-      ["Network:", "Solana Devnet"],
-    ];
+  const details: [string, string][] = [
+    ["Agreement ID:", idHex],
+    ["Agreement PDA:", pdaStr],
+    ["Type:", typeLabel],
+    ["Visibility:", agreement.visibility === 0 ? "Public" : "Private"],
+    ["Created:", formatDate(agreement.createdAt.toNumber())],
+    ["Expires:", agreement.expiresAt.toNumber() > 0 ? formatDate(agreement.expiresAt.toNumber()) : "No expiration"],
+    ["Parties:", `${agreement.numSigned}/${agreement.numParties} signed`],
+    ["Network:", "Solana Devnet"],
+  ];
 
-    for (const [label, value] of details) {
-      doc.font("Helvetica-Bold").text(label, { continued: true, width: 130 });
-      doc.font("Helvetica").text(` ${value}`);
-      doc.moveDown(0.2);
+  doc.setFontSize(9);
+  for (const [label, value] of details) {
+    doc.setFont("helvetica", "bold").setTextColor(51, 51, 51);
+    doc.text(label, margin, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(value, margin + 35, y);
+    y += 5;
+  }
+  y += 5;
+
+  // Terms
+  doc.setFontSize(12).setTextColor(0, 0, 0).setFont("helvetica", "bold");
+  doc.text("TERMS", margin, y);
+  y += 7;
+  doc.setFontSize(8).setTextColor(51, 51, 51).setFont("helvetica", "normal");
+  doc.text("Terms Hash (SHA-256):", margin, y);
+  y += 4;
+  doc.setFont("courier", "normal").setFontSize(7).setTextColor(85, 85, 85);
+  doc.text(termsHash, margin, y);
+  y += 5;
+  doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(51, 51, 51);
+  doc.text("Terms URI:", margin, y);
+  y += 4;
+  doc.setFont("courier", "normal").setFontSize(7).setTextColor(85, 85, 85);
+  doc.text(termsUri || "None", margin, y);
+  y += 8;
+
+  // Escrow
+  const escrowSol = agreement.escrowTotal.toNumber() / 1e9;
+  if (escrowSol > 0) {
+    doc.setFontSize(12).setTextColor(0, 0, 0).setFont("helvetica", "bold");
+    doc.text("ESCROW", margin, y);
+    y += 7;
+    doc.setFontSize(10).setTextColor(51, 51, 51).setFont("helvetica", "normal");
+    doc.text(`Total Escrowed: ${escrowSol.toFixed(4)} SOL`, margin, y);
+    y += 8;
+  }
+
+  // Signatures
+  doc.setFontSize(12).setTextColor(0, 0, 0).setFont("helvetica", "bold");
+  doc.text("SIGNATURES", margin, y);
+  y += 8;
+
+  for (const { party, identity } of parties) {
+    if (y > 260) { doc.addPage(); y = 20; }
+
+    const p = party.account;
+    const role = ROLE_LABELS[p.role] ?? "Party";
+    const agentKey = identity?.agentKey?.toBase58() ?? p.agentIdentity.toBase58();
+    const authority = identity?.authority?.toBase58() ?? agentKey;
+    const signed = p.signed;
+    const signedAt = signed ? formatDate(p.signedAt.toNumber()) : null;
+
+    const boxH = signed ? 28 : 22;
+    doc.setDrawColor(signed ? 22 : 220, signed ? 163 : 220, signed ? 74 : 220);
+    doc.roundedRect(margin, y, contentWidth, boxH, 2, 2);
+    doc.stroke();
+
+    doc.setFontSize(9).setTextColor(0, 0, 0).setFont("helvetica", "bold");
+    doc.text(role.toUpperCase(), margin + 3, y + 5);
+
+    doc.setFontSize(7).setTextColor(85, 85, 85).setFont("courier", "normal");
+    doc.text(`Agent: ${agentKey}`, margin + 3, y + 10);
+    doc.text(`Authority: ${authority}`, margin + 3, y + 14);
+
+    if (signed && signedAt) {
+      doc.setFontSize(12).setTextColor(26, 26, 26).setFont("helvetica", "bolditalic");
+      doc.text(shortenPubkey(agentKey, 12), margin + 110, y + 6);
+      doc.setFontSize(7).setTextColor(22, 163, 74).setFont("helvetica", "bold");
+      doc.text("SIGNED", margin + 110, y + 11);
+      doc.setFont("helvetica", "normal").setTextColor(136, 136, 136);
+      doc.text(signedAt, margin + 125, y + 11);
+      doc.setFontSize(6).setTextColor(170, 170, 170).setFont("courier", "normal");
+      doc.text(`Party PDA: ${party.publicKey.toBase58()}`, margin + 3, y + 20);
+    } else {
+      doc.setFontSize(9).setTextColor(202, 138, 4).setFont("helvetica", "bold");
+      doc.text("PENDING", margin + 110, y + 10);
     }
 
-    doc.moveDown(0.5);
+    y += boxH + 5;
+  }
 
-    // ── Terms ──
-    doc.fontSize(12).fillColor("#000").font("Helvetica-Bold").text("TERMS", { underline: true });
-    doc.moveDown(0.5);
-    doc.fontSize(9).fillColor("#333").font("Helvetica");
-    doc.text("Terms Hash (SHA-256):", { continued: false });
-    doc.font("Courier").fontSize(8).fillColor("#555").text(termsHash);
-    doc.moveDown(0.3);
-    doc.font("Helvetica").fontSize(9).fillColor("#333").text("Terms URI:", { continued: false });
-    doc.font("Courier").fontSize(8).fillColor("#555").text(termsUri || "None");
-    doc.moveDown(1);
+  // Footer
+  y = Math.max(y + 5, 265);
+  if (y > 280) { doc.addPage(); y = 20; }
+  doc.setDrawColor(220, 220, 220).line(margin, y, pw - margin, y);
+  y += 5;
 
-    // ── Escrow ──
-    const escrowSol = agreement.escrowTotal.toNumber() / 1e9;
-    if (escrowSol > 0) {
-      doc.fontSize(12).fillColor("#000").font("Helvetica-Bold").text("ESCROW", { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(10).fillColor("#333").font("Helvetica");
-      doc.text(`Total Escrowed: ${escrowSol.toFixed(4)} SOL`);
-      doc.moveDown(1);
-    }
+  doc.setFontSize(6).setTextColor(170, 170, 170).setFont("helvetica", "normal");
+  const footer1 = "This document is a cryptographically verifiable record of an on-chain agreement on the Solana blockchain. All signatures are Ed25519 digital signatures verified by the Agent Agreement Protocol smart contract.";
+  doc.text(footer1, pw / 2, y, { align: "center", maxWidth: contentWidth });
+  y += 8;
+  doc.text(
+    `Generated: ${new Date().toISOString()} | Program: ${PROGRAM_ID.toBase58()} | Verify: https://frontend-ten-livid-87.vercel.app/agreement/${pdaStr}`,
+    pw / 2, y, { align: "center", maxWidth: contentWidth }
+  );
 
-    // ── Signatures ──
-    doc.fontSize(12).fillColor("#000").font("Helvetica-Bold").text("SIGNATURES", { underline: true });
-    doc.moveDown(0.8);
-
-    for (const { party, identity } of parties) {
-      const p = party.account;
-      const role = ROLE_LABELS[p.role] ?? "Party";
-      const agentKey = identity?.agentKey?.toBase58() ?? p.agentIdentity.toBase58();
-      const authority = identity?.authority?.toBase58() ?? "Unknown";
-      const signed = p.signed;
-      const signedAt = signed ? formatDate(p.signedAt.toNumber()) : null;
-
-      // Signature box
-      const boxY = doc.y;
-      doc.roundedRect(55, boxY, 485, signed ? 80 : 60, 4).strokeColor(signed ? "#16a34a" : "#ddd").stroke();
-
-      doc.fontSize(10).fillColor("#000").font("Helvetica-Bold");
-      doc.text(role.toUpperCase(), 65, boxY + 10);
-
-      doc.fontSize(8).fillColor("#555").font("Courier");
-      doc.text(`Agent: ${agentKey}`, 65, boxY + 25);
-      doc.text(`Authority: ${authority}`, 65, boxY + 37);
-
-      if (signed && signedAt) {
-        // Signature line with cursive-style name
-        doc.fontSize(14).fillColor("#1a1a1a").font("Helvetica-Oblique");
-        doc.text(shortenPubkey(agentKey, 12), 340, boxY + 10);
-
-        doc.fontSize(8).fillColor("#16a34a").font("Helvetica-Bold");
-        doc.text(`✓ SIGNED`, 340, boxY + 30);
-        doc.font("Helvetica").fillColor("#888");
-        doc.text(signedAt, 390, boxY + 30);
-
-        // Party PDA
-        doc.fontSize(7).fillColor("#aaa").font("Courier");
-        doc.text(`Party PDA: ${party.publicKey.toBase58()}`, 65, boxY + 55);
-
-        doc.y = boxY + 90;
-      } else {
-        doc.fontSize(10).fillColor("#ca8a04").font("Helvetica-Bold");
-        doc.text("⏳ PENDING", 340, boxY + 25);
-
-        doc.y = boxY + 70;
-      }
-    }
-
-    // ── Footer ──
-    doc.moveDown(1);
-    doc.moveTo(50, doc.y).lineTo(545, doc.y).strokeColor("#ddd").stroke();
-    doc.moveDown(0.5);
-
-    doc.fontSize(7).fillColor("#aaa").font("Helvetica");
-    doc.text(
-      "This document is a cryptographically verifiable record of an on-chain agreement on the Solana blockchain. " +
-        "All signatures are Ed25519 digital signatures verified by the Agent Agreement Protocol smart contract. " +
-        "The terms hash above can be used to verify the integrity of any attached documents.",
-      50,
-      doc.y,
-      { width: 495, align: "center" }
-    );
-    doc.moveDown(0.5);
-    doc.text(
-      `Generated: ${new Date().toISOString()} | Program: ${PROGRAM_ID.toBase58()} | Verify at: https://frontend-ten-livid-87.vercel.app/agreement/${pdaStr}`,
-      50,
-      doc.y,
-      { width: 495, align: "center" }
-    );
-
-    doc.end();
-  });
+  return Buffer.from(doc.output("arraybuffer"));
 }
