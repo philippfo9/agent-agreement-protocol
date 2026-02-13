@@ -58,16 +58,17 @@ function SignAction({ agreement, parties, pdaStr }: { agreement: any; parties: a
   if (!wallet.publicKey || agreement.status !== 0) return null; // Only show for PROPOSED
 
   // Check if current wallet is an unsigned party (by agent_identity field matching wallet or identity agentKey)
-  const myParty = parties?.find((p) => {
+  const myPartyEntry = parties?.find((p) => {
+    const pa = p.party.account;
     // Direct signer: agent_identity stores the raw wallet pubkey
-    if (p.account.agentIdentity.toBase58() === wallet.publicKey?.toBase58() && !p.account.signed) return true;
+    if (pa.agentIdentity.toBase58() === wallet.publicKey?.toBase58() && !pa.signed) return true;
     // Identity-based: identity's agentKey matches wallet
     const agentKey = p.identity?.agentKey?.toBase58();
-    return agentKey === wallet.publicKey?.toBase58() && !p.account.signed;
+    return agentKey === wallet.publicKey?.toBase58() && !pa.signed;
   });
 
-  if (!myParty) return null;
-  const partyToSign = myParty;
+  if (!myPartyEntry) return null;
+  const partyToSign = myPartyEntry;
 
   const handleSign = async () => {
     if (!wallet.publicKey || !wallet.signTransaction || !partyToSign) return;
@@ -108,7 +109,7 @@ function SignAction({ agreement, parties, pdaStr }: { agreement: any; parties: a
           signer: agentKey,
           signerIdentity: signerIdentityPDA,
           agreement: new PublicKey(pdaStr),
-          party: partyToSign.publicKey,
+          party: partyToSign.party.publicKey,
         })
         .rpc();
 
