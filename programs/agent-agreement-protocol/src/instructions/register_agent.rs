@@ -27,11 +27,7 @@ pub fn handler(
     metadata_hash: [u8; 32],
     scope: DelegationScope,
 ) -> Result<()> {
-    // Agent key must be different from authority
-    require!(
-        agent_key != ctx.accounts.authority.key(),
-        AapError::AgentKeyEqualsAuthority
-    );
+    // Agent key can equal authority (human signer mode) or differ (delegated agent mode)
 
     // Validate scope expiration
     if scope.expires_at != 0 {

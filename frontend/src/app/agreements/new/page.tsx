@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { AAP_IDL } from "@/lib/idl";
 import { getAgentIdentityPDA } from "@/lib/pda";
@@ -134,9 +134,8 @@ export default function NewAgreementPage() {
       const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
       const program = new Program(AAP_IDL as any as Idl, provider);
 
-      // Generate a dedicated agent keypair for the human (program requires agent_key ≠ authority)
-      const agentKeypair = Keypair.generate();
-      const [agentIdentityPDA] = getAgentIdentityPDA(agentKeypair.publicKey);
+      // Register wallet as its own agent (human signer — agent_key == authority)
+      const [agentIdentityPDA] = getAgentIdentityPDA(wallet.publicKey);
       const metadataHash = new Array(32).fill(0);
       const nameBytes = new TextEncoder().encode(signerName || "Human Signer");
       for (let i = 0; i < Math.min(nameBytes.length, 32); i++) {
@@ -151,7 +150,7 @@ export default function NewAgreementPage() {
       };
 
       await (program.methods as any)
-        .registerAgent(agentKeypair.publicKey, metadataHash, scope)
+        .registerAgent(wallet.publicKey, metadataHash, scope)
         .accounts({
           authority: wallet.publicKey,
           agentIdentity: agentIdentityPDA,
@@ -159,14 +158,8 @@ export default function NewAgreementPage() {
         })
         .rpc();
 
-      // Store the agent keypair in sessionStorage so we can sign with it
-      sessionStorage.setItem(
-        `aap_agent_${wallet.publicKey.toBase58()}`,
-        JSON.stringify(Array.from(agentKeypair.secretKey))
-      );
-
       setNeedsIdentity(false);
-      setSelectedAgent(agentKeypair.publicKey.toBase58());
+      setSelectedAgent(wallet.publicKey.toBase58());
     } catch (err: unknown) {
       setError(formatError(err));
     } finally {
@@ -254,13 +247,8 @@ export default function NewAgreementPage() {
 
       const numParties = validCounterparties.length + 1;
 
-      // Check if we have a stored agent keypair (human signer flow)
-      const storedKey = sessionStorage.getItem(`aap_agent_${wallet.publicKey!.toBase58()}`);
-      const agentKeypair = storedKey ? Keypair.fromSecretKey(Uint8Array.from(JSON.parse(storedKey))) : null;
-      const needsKeypairSigner = agentKeypair && agentKeypair.publicKey.equals(proposerKey);
-
       // Propose agreement (proposer auto-signs)
-      const proposeTx = (program.methods as any)
+      await (program.methods as any)
         .proposeAgreement(
           agreementId,
           agreementType,
@@ -276,13 +264,8 @@ export default function NewAgreementPage() {
           agreement: agreementPda,
           proposerParty: proposerPartyPDA,
           systemProgram: SystemProgram.programId,
-        });
-
-      if (needsKeypairSigner) {
-        await proposeTx.signers([agentKeypair]).rpc();
-      } else {
-        await proposeTx.rpc();
-      }
+        })
+        .rpc();
 
       // Add each counterparty
       for (const cpKey of validCounterparties) {
@@ -290,7 +273,7 @@ export default function NewAgreementPage() {
         const [counterpartyIdentityPDA] = getAgentIdentityPDA(counterparty);
         const [counterpartyPartyPDA] = getPartyPDA(agreementId, counterpartyIdentityPDA);
 
-        const addPartyTx = (program.methods as any)
+        await (program.methods as any)
           .addParty(agreementId, 1) // COUNTERPARTY role
           .accounts({
             proposerSigner: proposerKey,
@@ -299,13 +282,8 @@ export default function NewAgreementPage() {
             partyIdentity: counterpartyIdentityPDA,
             party: counterpartyPartyPDA,
             systemProgram: SystemProgram.programId,
-          });
-
-        if (needsKeypairSigner) {
-          await addPartyTx.signers([agentKeypair]).rpc();
-        } else {
-          await addPartyTx.rpc();
-        }
+          })
+          .rpc();
       }
 
       const idHex = agreementId.map((b) => b.toString(16).padStart(2, "0")).join("");
