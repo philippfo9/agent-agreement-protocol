@@ -478,12 +478,18 @@ export default function NewAgreementPage() {
           </div>
 
           {/* Proposer selection */}
-          {myAgents && myAgents.length > 1 ? (
+          {myAgents && myAgents.length > 0 ? (
             <div>
               <label className="block text-sm text-shell-muted mb-1.5">Sign as</label>
               <select
                 value={selectedAgent}
-                onChange={(e) => setSelectedAgent(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value === "__register_self__") {
+                    handleQuickRegister();
+                  } else {
+                    setSelectedAgent(e.target.value);
+                  }
+                }}
                 className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20"
               >
                 {myAgents.map((agent) => {
@@ -501,6 +507,11 @@ export default function NewAgreementPage() {
                     </option>
                   );
                 })}
+                {wallet.publicKey && !myAgents.some((a) => a.account.agentKey.toBase58() === wallet.publicKey!.toBase58()) && (
+                  <option value="__register_self__">
+                    ✍️ Sign as myself ({wallet.publicKey.toBase58().slice(0, 8)}...)
+                  </option>
+                )}
               </select>
             </div>
           ) : null}
