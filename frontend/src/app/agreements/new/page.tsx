@@ -169,7 +169,18 @@ export default function NewAgreementPage() {
 
   const handlePropose = async () => {
     const validCounterparties = counterparties.filter((k) => k.trim());
-    if (!wallet.publicKey || !wallet.signTransaction || !selectedAgent || validCounterparties.length === 0) return;
+    if (!wallet.publicKey || !wallet.signTransaction) {
+      setError("Please connect your wallet first.");
+      return;
+    }
+    if (!selectedAgent) {
+      setError("No signing identity selected. Please register first.");
+      return;
+    }
+    if (validCounterparties.length === 0) {
+      setError("Please add at least one counterparty.");
+      return;
+    }
     setError(null);
     setPolicyViolation(null);
     setIsSubmitting(true);
@@ -180,6 +191,7 @@ export default function NewAgreementPage() {
         new PublicKey(cpKey.trim());
       } catch {
         setError(`Invalid public key: ${cpKey.trim().slice(0, 12)}...`);
+        setIsSubmitting(false);
         return;
       }
     }
@@ -221,6 +233,7 @@ export default function NewAgreementPage() {
     }
 
     try {
+      console.log("[propose] Starting...", { selectedAgent, counterparties: validCounterparties, walletPubkey: wallet.publicKey.toBase58() });
       const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
       const program = new Program(AAP_IDL as any as Idl, provider);
 
@@ -230,6 +243,7 @@ export default function NewAgreementPage() {
       const proposerKey = new PublicKey(selectedAgent);
       const [proposerIdentityPDA] = getAgentIdentityPDA(proposerKey);
       const [proposerPartyPDA] = getPartyPDA(agreementId, proposerIdentityPDA);
+      console.log("[propose] PDAs:", { proposerKey: proposerKey.toBase58(), proposerIdentityPDA: proposerIdentityPDA.toBase58(), proposerPartyPDA: proposerPartyPDA.toBase58(), agreementPda: agreementPda.toBase58() });
 
       // Hash terms — use uploaded doc hash if available, otherwise hash text
       const termsHash = new Array(32).fill(0);
@@ -262,7 +276,8 @@ export default function NewAgreementPage() {
       const numParties = validCounterparties.length + 1;
 
       // Propose agreement (proposer auto-signs)
-      await (program.methods as any)
+      console.log("[propose] Sending proposeAgreement tx...");
+      const txSig = await (program.methods as any)
         .proposeAgreement(
           agreementId,
           agreementType,
@@ -280,6 +295,7 @@ export default function NewAgreementPage() {
           systemProgram: SystemProgram.programId,
         })
         .rpc();
+      console.log("[propose] proposeAgreement tx confirmed:", txSig);
 
       // Add each counterparty using addPartyDirect (no registration required)
       for (const cpKey of validCounterparties) {
