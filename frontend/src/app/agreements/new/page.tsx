@@ -137,7 +137,7 @@ export default function NewAgreementPage() {
       // Register wallet as its own agent (human signer — agent_key == authority)
       const [agentIdentityPDA] = getAgentIdentityPDA(wallet.publicKey);
       const metadataHash = new Array(32).fill(0);
-      const nameBytes = new TextEncoder().encode(signerName || "Human Signer");
+      const nameBytes = new TextEncoder().encode(signerName || "Myself");
       for (let i = 0; i < Math.min(nameBytes.length, 32); i++) {
         metadataHash[i] = nameBytes[i];
       }
@@ -493,12 +493,15 @@ export default function NewAgreementPage() {
                 className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20"
               >
                 {myAgents.map((agent) => {
+                  const isSelf = wallet.publicKey && agent.account.agentKey.toBase58() === wallet.publicKey.toBase58();
                   const name = (() => {
+                    if (isSelf) return "✍️ Myself";
                     try {
                       const bytes = agent.account.metadataHash;
                       const end = bytes.indexOf(0);
                       const slice = end === -1 ? bytes : bytes.slice(0, end);
-                      return new TextDecoder().decode(new Uint8Array(slice));
+                      const decoded = new TextDecoder().decode(new Uint8Array(slice));
+                      return decoded === "Myself" || decoded === "Human Signer" ? "✍️ Myself" : decoded;
                     } catch { return ""; }
                   })();
                   return (
