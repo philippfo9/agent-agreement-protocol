@@ -173,18 +173,12 @@ export default function NewAgreementPage() {
     setError(null);
     setPolicyViolation(null);
 
-    // Verify all counterparties are registered
+    // Validate counterparty pubkeys
     for (const cpKey of validCounterparties) {
       try {
-        const cpPubkey = new PublicKey(cpKey.trim());
-        const [cpIdentityPDA] = getAgentIdentityPDA(cpPubkey);
-        const cpAccount = await connection.getAccountInfo(cpIdentityPDA);
-        if (!cpAccount) {
-          setError(`Counterparty ${cpKey.trim().slice(0, 8)}... is not registered. They need to register an identity first (via the claim page or /agreements/new).`);
-          return;
-        }
+        new PublicKey(cpKey.trim());
       } catch {
-        setError(`Invalid counterparty public key: ${cpKey.trim().slice(0, 12)}...`);
+        setError(`Invalid public key: ${cpKey.trim().slice(0, 12)}...`);
         return;
       }
     }
@@ -283,19 +277,20 @@ export default function NewAgreementPage() {
         })
         .rpc();
 
-      // Add each counterparty
+      // Add each counterparty using addPartyDirect (no registration required)
       for (const cpKey of validCounterparties) {
-        const counterparty = new PublicKey(cpKey.trim());
-        const [counterpartyIdentityPDA] = getAgentIdentityPDA(counterparty);
-        const [counterpartyPartyPDA] = getPartyPDA(agreementId, counterpartyIdentityPDA);
+        const counterpartyPubkey = new PublicKey(cpKey.trim());
+        const [counterpartyPartyPDA] = PublicKey.findProgramAddressSync(
+          [Buffer.from("party"), Buffer.from(agreementId), counterpartyPubkey.toBuffer()],
+          program.programId
+        );
 
         await (program.methods as any)
-          .addParty(agreementId, 1) // COUNTERPARTY role
+          .addPartyDirect(agreementId, counterpartyPubkey, 1) // COUNTERPARTY role
           .accounts({
             proposerSigner: proposerKey,
             proposerIdentity: proposerIdentityPDA,
             agreement: agreementPda,
-            partyIdentity: counterpartyIdentityPDA,
             party: counterpartyPartyPDA,
             systemProgram: SystemProgram.programId,
           })

@@ -115,4 +115,22 @@ pub mod agent_agreement_protocol {
     ) -> Result<()> {
         instructions::withdraw_from_vault::handler(ctx, amount)
     }
+
+    /// Add a party by raw pubkey — no identity registration required.
+    pub fn add_party_direct(
+        ctx: Context<AddPartyDirect>,
+        agreement_id: [u8; 16],
+        party_pubkey: Pubkey,
+        role: u8,
+    ) -> Result<()> {
+        instructions::add_party_direct::handler(ctx, agreement_id, party_pubkey, role)
+    }
+
+    /// Sign an agreement directly — no identity registration required.
+    pub fn sign_agreement_direct(
+        ctx: Context<SignAgreementDirect>,
+        agreement_id: [u8; 16],
+    ) -> Result<()> {
+        instructions::sign_agreement_direct::handler(ctx, agreement_id)
+    }
 }

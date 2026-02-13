@@ -57,19 +57,17 @@ function SignAction({ agreement, parties, pdaStr }: { agreement: any; parties: a
 
   if (!wallet.publicKey || agreement.status !== 0) return null; // Only show for PROPOSED
 
-  // Check if current wallet is an unsigned party
+  // Check if current wallet is an unsigned party (by agent_identity field matching wallet or identity agentKey)
   const myParty = parties?.find((p) => {
+    // Direct signer: agent_identity stores the raw wallet pubkey
+    if (p.account.agentIdentity.toBase58() === wallet.publicKey?.toBase58() && !p.account.signed) return true;
+    // Identity-based: identity's agentKey matches wallet
     const agentKey = p.identity?.agentKey?.toBase58();
     return agentKey === wallet.publicKey?.toBase58() && !p.account.signed;
   });
 
-  // Also check if wallet has an agent identity that matches
-  const myAgentParty = parties?.find((p) => {
-    return !p.account.signed;
-  });
-
-  if (!myParty && !myAgentParty) return null;
-  const partyToSign = myParty || myAgentParty;
+  if (!myParty) return null;
+  const partyToSign = myParty;
 
   const handleSign = async () => {
     if (!wallet.publicKey || !wallet.signTransaction || !partyToSign) return;
@@ -79,6 +77,28 @@ function SignAction({ agreement, parties, pdaStr }: { agreement: any; parties: a
       const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
       const program = new Program(AAP_IDL as any as Idl, provider);
 
+      // Try direct signing first (no identity required)
+      const [directPartyPDA] = PublicKey.findProgramAddressSync(
+        [Buffer.from("party"), Buffer.from(agreement.agreementId), wallet.publicKey.toBuffer()],
+        program.programId
+      );
+
+      try {
+        await (program.methods as any)
+          .signAgreementDirect(agreement.agreementId)
+          .accounts({
+            signer: wallet.publicKey,
+            agreement: new PublicKey(pdaStr),
+            party: directPartyPDA,
+          })
+          .rpc();
+        setSigned(true);
+        return;
+      } catch {
+        // Fall back to identity-based signing
+      }
+
+      // Identity-based signing
       const agentKey = partyToSign.identity?.agentKey || wallet.publicKey;
       const [signerIdentityPDA] = getAgentIdentityPDA(agentKey);
 
