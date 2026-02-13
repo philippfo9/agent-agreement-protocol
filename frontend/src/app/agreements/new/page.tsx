@@ -3,7 +3,7 @@
 import { useState, useTransition, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js";
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { AAP_IDL } from "@/lib/idl";
 import { getAgentIdentityPDA } from "@/lib/pda";
@@ -134,10 +134,11 @@ export default function NewAgreementPage() {
       const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
       const program = new Program(AAP_IDL as any as Idl, provider);
 
-      // Register wallet as its own agent (human identity)
-      const [agentIdentityPDA] = getAgentIdentityPDA(wallet.publicKey);
+      // Generate a dedicated agent keypair for the human (program requires agent_key ≠ authority)
+      const agentKeypair = Keypair.generate();
+      const [agentIdentityPDA] = getAgentIdentityPDA(agentKeypair.publicKey);
       const metadataHash = new Array(32).fill(0);
-      const nameBytes = new TextEncoder().encode("Human Signer");
+      const nameBytes = new TextEncoder().encode(signerName || "Human Signer");
       for (let i = 0; i < Math.min(nameBytes.length, 32); i++) {
         metadataHash[i] = nameBytes[i];
       }
@@ -146,11 +147,11 @@ export default function NewAgreementPage() {
         canSignAgreements: true,
         canCommitFunds: false,
         maxCommitLamports: new BN(0),
-        expiresAt: new BN(0),
+        expiresAt: new BN(0), // no expiry for human identity
       };
 
       await (program.methods as any)
-        .registerAgent(wallet.publicKey, metadataHash, scope)
+        .registerAgent(agentKeypair.publicKey, metadataHash, scope)
         .accounts({
           authority: wallet.publicKey,
           agentIdentity: agentIdentityPDA,
@@ -158,8 +159,14 @@ export default function NewAgreementPage() {
         })
         .rpc();
 
+      // Store the agent keypair in sessionStorage so we can sign with it
+      sessionStorage.setItem(
+        `aap_agent_${wallet.publicKey.toBase58()}`,
+        JSON.stringify(Array.from(agentKeypair.secretKey))
+      );
+
       setNeedsIdentity(false);
-      setSelectedAgent(wallet.publicKey.toBase58());
+      setSelectedAgent(agentKeypair.publicKey.toBase58());
     } catch (err: unknown) {
       setError(formatError(err));
     } finally {
@@ -247,8 +254,13 @@ export default function NewAgreementPage() {
 
       const numParties = validCounterparties.length + 1;
 
+      // Check if we have a stored agent keypair (human signer flow)
+      const storedKey = sessionStorage.getItem(`aap_agent_${wallet.publicKey!.toBase58()}`);
+      const agentKeypair = storedKey ? Keypair.fromSecretKey(Uint8Array.from(JSON.parse(storedKey))) : null;
+      const needsKeypairSigner = agentKeypair && agentKeypair.publicKey.equals(proposerKey);
+
       // Propose agreement (proposer auto-signs)
-      await (program.methods as any)
+      const proposeTx = (program.methods as any)
         .proposeAgreement(
           agreementId,
           agreementType,
@@ -264,8 +276,13 @@ export default function NewAgreementPage() {
           agreement: agreementPda,
           proposerParty: proposerPartyPDA,
           systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+        });
+
+      if (needsKeypairSigner) {
+        await proposeTx.signers([agentKeypair]).rpc();
+      } else {
+        await proposeTx.rpc();
+      }
 
       // Add each counterparty
       for (const cpKey of validCounterparties) {
@@ -273,7 +290,7 @@ export default function NewAgreementPage() {
         const [counterpartyIdentityPDA] = getAgentIdentityPDA(counterparty);
         const [counterpartyPartyPDA] = getPartyPDA(agreementId, counterpartyIdentityPDA);
 
-        await (program.methods as any)
+        const addPartyTx = (program.methods as any)
           .addParty(agreementId, 1) // COUNTERPARTY role
           .accounts({
             proposerSigner: proposerKey,
@@ -282,8 +299,13 @@ export default function NewAgreementPage() {
             partyIdentity: counterpartyIdentityPDA,
             party: counterpartyPartyPDA,
             systemProgram: SystemProgram.programId,
-          })
-          .rpc();
+          });
+
+        if (needsKeypairSigner) {
+          await addPartyTx.signers([agentKeypair]).rpc();
+        } else {
+          await addPartyTx.rpc();
+        }
       }
 
       const idHex = agreementId.map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -405,18 +427,30 @@ export default function NewAgreementPage() {
 
       {needsIdentity ? (
         <div className="dark-card p-8 text-center">
-          <div className="text-4xl mb-4">👤</div>
-          <h2 className="text-lg font-semibold text-shell-heading mb-2">Register Your Identity</h2>
+          <div className="text-4xl mb-4">✍️</div>
+          <h2 className="text-lg font-semibold text-shell-heading mb-2">Sign as Human</h2>
           <p className="text-sm text-shell-muted mb-6">
-            To propose agreements, you need an on-chain identity. This is a one-time setup that links your wallet to the protocol.
+            Create an on-chain signing identity linked to your wallet. This is a one-time setup — your wallet stays in full control.
           </p>
+          <div className="max-w-xs mx-auto mb-4">
+            <input
+              type="text"
+              placeholder="Your name (optional)"
+              value={signerName}
+              onChange={(e) => setSignerName(e.target.value)}
+              className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-shell-fg placeholder:text-shell-dim focus:outline-none focus:border-white/30"
+            />
+          </div>
           <button
             onClick={handleQuickRegister}
             disabled={isRegistering}
             className="bg-white hover:bg-gray-200 disabled:bg-shell-skeleton disabled:text-shell-dim text-black font-medium py-3 px-8 rounded-lg transition-all"
           >
-            {isRegistering ? "Registering..." : "Register as Human Signer"}
+            {isRegistering ? "Creating identity..." : "Create Signing Identity"}
           </button>
+          <p className="text-xs text-shell-dim mt-3">
+            Generates a signing key under your wallet authority. Costs ~0.002 SOL (rent, reclaimable).
+          </p>
           {error && (
             <div className="mt-4 text-sm text-shell-muted">⚠️ {error}</div>
           )}
