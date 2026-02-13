@@ -4,8 +4,9 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   outputFileTracingIncludes: {
-    "/api/agreements/pdf": ["./node_modules/pdfkit/js/data/**/*"],
+    "/api/agreements/pdf": ["./node_modules/pdfkit/**/*"],
   },
+  serverExternalPackages: ["pdfkit"],
   experimental: {
     optimizePackageImports: [
       "@solana/wallet-adapter-react",
