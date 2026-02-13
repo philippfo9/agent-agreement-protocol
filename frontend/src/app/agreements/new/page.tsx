@@ -173,6 +173,22 @@ export default function NewAgreementPage() {
     setError(null);
     setPolicyViolation(null);
 
+    // Verify all counterparties are registered
+    for (const cpKey of validCounterparties) {
+      try {
+        const cpPubkey = new PublicKey(cpKey.trim());
+        const [cpIdentityPDA] = getAgentIdentityPDA(cpPubkey);
+        const cpAccount = await connection.getAccountInfo(cpIdentityPDA);
+        if (!cpAccount) {
+          setError(`Counterparty ${cpKey.trim().slice(0, 8)}... is not registered. They need to register an identity first (via the claim page or /agreements/new).`);
+          return;
+        }
+      } catch {
+        setError(`Invalid counterparty public key: ${cpKey.trim().slice(0, 12)}...`);
+        return;
+      }
+    }
+
     // Check policy constraints
     if (policyCheck && !policyCheck.allowed) {
       setPolicyViolation(policyCheck.violations.join("\n"));
