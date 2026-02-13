@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
@@ -37,7 +37,7 @@ export default function NewAgreementPage() {
   const { connection } = useConnection();
   const wallet = useWallet();
   const { data: myAgents } = useMyAgents();
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ agreementPda: string; agreementId: string } | null>(null);
 
@@ -172,6 +172,7 @@ export default function NewAgreementPage() {
     if (!wallet.publicKey || !wallet.signTransaction || !selectedAgent || validCounterparties.length === 0) return;
     setError(null);
     setPolicyViolation(null);
+    setIsSubmitting(true);
 
     // Validate counterparty pubkeys
     for (const cpKey of validCounterparties) {
@@ -186,6 +187,7 @@ export default function NewAgreementPage() {
     // Check policy constraints
     if (policyCheck && !policyCheck.allowed) {
       setPolicyViolation(policyCheck.violations.join("\n"));
+      setIsSubmitting(false);
       return;
     }
 
@@ -209,9 +211,11 @@ export default function NewAgreementPage() {
           description: termsText.slice(0, 200) || null,
         });
         setDraftSuccess(true);
+        setIsSubmitting(false);
         return;
       } catch (err: unknown) {
         setError(formatError(err));
+        setIsSubmitting(false);
         return;
       }
     }
@@ -322,7 +326,10 @@ export default function NewAgreementPage() {
 
       setSuccess({ agreementPda: agreementPda.toBase58(), agreementId: idHex });
     } catch (err: unknown) {
+      console.error("Propose agreement error:", err);
       setError(formatError(err));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -558,7 +565,7 @@ export default function NewAgreementPage() {
               ))}
             </div>
             <div className="flex items-center justify-between mt-2">
-              <p className="text-xs text-shell-dim">Each counterparty must have a registered identity to sign.</p>
+              <p className="text-xs text-shell-dim">Any Solana wallet can be a counterparty — no registration needed to sign.</p>
               {counterparties.length < 7 && (
                 <button
                   type="button"
@@ -681,11 +688,11 @@ export default function NewAgreementPage() {
           )}
 
           <button
-            onClick={() => startTransition(() => { handlePropose(); })}
-            disabled={isPending || validCounterparties.length === 0}
+            onClick={handlePropose}
+            disabled={isSubmitting || validCounterparties.length === 0}
             className="w-full bg-white hover:bg-gray-200 disabled:bg-shell-skeleton disabled:text-shell-dim text-black font-medium py-3 px-4 rounded-lg transition-all duration-200"
           >
-            {isPending ? "Proposing..." : `Propose Agreement (${validCounterparties.length + 1} parties)`}
+            {isSubmitting ? "Proposing..." : `Propose Agreement (${validCounterparties.length + 1} parties)`}
           </button>
 
           <p className="text-xs text-shell-dim text-center">

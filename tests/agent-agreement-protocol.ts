@@ -169,30 +169,35 @@ describe("Agent Agreement Protocol", () => {
       );
     });
 
-    it("fails when agent_key == authority", async () => {
-      const [badPda] = findAgentIdentityPda(
-        authorityA.publicKey,
+    it("allows agent_key == authority (human wallet signing)", async () => {
+      const humanWallet = Keypair.generate();
+      const [humanPda] = findAgentIdentityPda(
+        humanWallet.publicKey,
         program.programId
       );
-      try {
-        await program.methods
-          .registerAgent(authorityA.publicKey, makeMetadataHash(), {
-            canSignAgreements: true,
-            canCommitFunds: false,
-            maxCommitLamports: new BN(0),
-            expiresAt: new BN(0),
-          })
-          .accounts({
-            authority: authorityA.publicKey,
-            agentIdentity: badPda,
-            systemProgram: SystemProgram.programId,
-          })
-          .signers([authorityA])
-          .rpc();
-        expect.fail("Should have thrown");
-      } catch (err: any) {
-        expect(err.error.errorCode.code).to.equal("AgentKeyEqualsAuthority");
-      }
+
+      // Airdrop some SOL
+      const sig = await provider.connection.requestAirdrop(humanWallet.publicKey, 1_000_000_000);
+      await provider.connection.confirmTransaction(sig, "confirmed");
+
+      await program.methods
+        .registerAgent(humanWallet.publicKey, makeMetadataHash(), {
+          canSignAgreements: true,
+          canCommitFunds: false,
+          maxCommitLamports: new BN(0),
+          expiresAt: new BN(0),
+        })
+        .accounts({
+          authority: humanWallet.publicKey,
+          agentIdentity: humanPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([humanWallet])
+        .rpc();
+
+      const account = await program.account.agentIdentity.fetch(humanPda);
+      expect(account.agentKey.toBase58()).to.equal(humanWallet.publicKey.toBase58());
+      expect(account.authority.toBase58()).to.equal(humanWallet.publicKey.toBase58());
     });
 
     it("fails with already expired scope", async () => {
@@ -1468,6 +1473,108 @@ describe("Agent Agreement Protocol", () => {
 
       const subIdentity = await program.account.agentIdentity.fetch(subPda);
       expect(subIdentity.parent.toBase58()).to.equal(identityPdaA.toBase58());
+    });
+  });
+
+  describe("Integration: Human-to-human direct signing flow", () => {
+    it("register → propose → addPartyDirect → signAgreementDirect → Active", async () => {
+      // Human A registers with wallet as agent_key
+      const humanA = Keypair.generate();
+      const humanB = Keypair.generate();
+
+      const sigA = await provider.connection.requestAirdrop(humanA.publicKey, 2_000_000_000);
+      await provider.connection.confirmTransaction(sigA, "confirmed");
+
+      const [humanAPda] = findAgentIdentityPda(humanA.publicKey, program.programId);
+
+      await program.methods
+        .registerAgent(humanA.publicKey, makeMetadataHash(), {
+          canSignAgreements: true,
+          canCommitFunds: false,
+          maxCommitLamports: new BN(0),
+          expiresAt: new BN(0),
+        })
+        .accounts({
+          authority: humanA.publicKey,
+          agentIdentity: humanAPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([humanA])
+        .rpc();
+
+      // Human A proposes agreement
+      const agreementId = Array.from({ length: 16 }, () => Math.floor(Math.random() * 256));
+      const [agPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("agreement"), Buffer.from(agreementId)],
+        program.programId
+      );
+      const [proposerPartyPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("party"), Buffer.from(agreementId), humanAPda.toBuffer()],
+        program.programId
+      );
+
+      await program.methods
+        .proposeAgreement(
+          agreementId, 1, 0,
+          new Array(32).fill(0),
+          new Array(64).fill(0),
+          2,
+          new BN(Math.floor(Date.now() / 1000) + 86400)
+        )
+        .accounts({
+          proposerSigner: humanA.publicKey,
+          proposerIdentity: humanAPda,
+          agreement: agPda,
+          proposerParty: proposerPartyPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([humanA])
+        .rpc();
+
+      // Add Human B as counterparty (direct — no registration)
+      const [counterpartyPartyPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("party"), Buffer.from(agreementId), humanB.publicKey.toBuffer()],
+        program.programId
+      );
+
+      await program.methods
+        .addPartyDirect(agreementId, humanB.publicKey, 1)
+        .accounts({
+          proposerSigner: humanA.publicKey,
+          proposerIdentity: humanAPda,
+          agreement: agPda,
+          party: counterpartyPartyPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([humanA])
+        .rpc();
+
+      // Verify party added
+      const party = await program.account.agreementParty.fetch(counterpartyPartyPda);
+      expect(party.agentIdentity.toBase58()).to.equal(humanB.publicKey.toBase58());
+      expect(party.signed).to.be.false;
+
+      // Human B signs directly
+      const sigB = await provider.connection.requestAirdrop(humanB.publicKey, 1_000_000_000);
+      await provider.connection.confirmTransaction(sigB, "confirmed");
+
+      await program.methods
+        .signAgreementDirect(agreementId)
+        .accounts({
+          signer: humanB.publicKey,
+          agreement: agPda,
+          party: counterpartyPartyPda,
+        })
+        .signers([humanB])
+        .rpc();
+
+      // Verify agreement is now Active
+      const agreement = await program.account.agreement.fetch(agPda);
+      expect(agreement.status).to.equal(STATUS_ACTIVE);
+      expect(agreement.numSigned).to.equal(2);
+
+      const signedParty = await program.account.agreementParty.fetch(counterpartyPartyPda);
+      expect(signedParty.signed).to.be.true;
     });
   });
 });
