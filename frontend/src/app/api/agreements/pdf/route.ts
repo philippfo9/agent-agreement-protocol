@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { Program, AnchorProvider, Idl, Wallet } from "@coral-xyz/anchor";
-import { Keypair } from "@solana/web3.js";
+import { Connection, PublicKey, Keypair } from "@solana/web3.js";
+import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
 // @ts-expect-error pdfkit types
 import PDFDocument from "pdfkit";
 
@@ -59,8 +58,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const connection = new Connection(RPC_URL, "confirmed");
-    const dummyWallet = new Wallet(Keypair.generate());
-    const provider = new AnchorProvider(connection, dummyWallet, { commitment: "confirmed" });
+    const dummyKeypair = Keypair.generate();
+    const dummyWallet = {
+      publicKey: dummyKeypair.publicKey,
+      signAllTransactions: async <T,>(txs: T[]) => txs,
+      signTransaction: async <T,>(tx: T) => tx,
+    };
+    const provider = new AnchorProvider(connection, dummyWallet as any, { commitment: "confirmed" });
 
     // Load IDL dynamically
     const idlModule = await import("@/lib/idl");
