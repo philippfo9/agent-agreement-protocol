@@ -109,42 +109,103 @@ export const AAP_IDL = {
     },
     {
       "name": "add_party_direct",
-      "discriminator": [181, 226, 243, 155, 84, 201, 4, 97],
-      "accounts": [
-        { "name": "proposer_signer", "writable": true, "signer": true },
-        { "name": "proposer_identity" },
-        {
-          "name": "agreement", "writable": true,
-          "pda": { "seeds": [{ "kind": "const", "value": [97,103,114,101,101,109,101,110,116] }, { "kind": "arg", "path": "agreement_id" }] }
-        },
-        {
-          "name": "party", "writable": true,
-          "pda": { "seeds": [{ "kind": "const", "value": [112,97,114,116,121] }, { "kind": "arg", "path": "agreement_id" }, { "kind": "arg", "path": "party_pubkey" }] }
-        },
-        { "name": "system_program", "address": "11111111111111111111111111111111" }
+      "docs": [
+        "Add a party by raw pubkey \u2014 no identity registration required."
       ],
-      "args": [
-        { "name": "agreement_id", "type": { "array": ["u8", 16] } },
-        { "name": "party_pubkey", "type": "pubKey" },
-        { "name": "role", "type": "u8" }
-      ]
-    },
-    {
-      "name": "sign_agreement_direct",
-      "discriminator": [116, 40, 248, 160, 180, 191, 247, 125],
+      "discriminator": [
+        181,
+        226,
+        243,
+        155,
+        84,
+        201,
+        4,
+        97
+      ],
       "accounts": [
-        { "name": "signer", "signer": true },
         {
-          "name": "agreement", "writable": true,
-          "pda": { "seeds": [{ "kind": "const", "value": [97,103,114,101,101,109,101,110,116] }, { "kind": "arg", "path": "agreement_id" }] }
+          "name": "proposer_signer",
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "party", "writable": true,
-          "pda": { "seeds": [{ "kind": "const", "value": [112,97,114,116,121] }, { "kind": "arg", "path": "agreement_id" }, { "kind": "account", "path": "signer" }] }
+          "name": "proposer_identity"
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "party",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "arg",
+                "path": "party_pubkey"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
-        { "name": "agreement_id", "type": { "array": ["u8", 16] } }
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        },
+        {
+          "name": "party_pubkey",
+          "type": "pubkey"
+        },
+        {
+          "name": "role",
+          "type": "u8"
+        }
       ]
     },
     {
@@ -807,6 +868,91 @@ export const AAP_IDL = {
               {
                 "kind": "account",
                 "path": "signer_identity"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "agreement_id",
+          "type": {
+            "array": [
+              "u8",
+              16
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "sign_agreement_direct",
+      "docs": [
+        "Sign an agreement directly \u2014 no identity registration required."
+      ],
+      "discriminator": [
+        116,
+        40,
+        248,
+        160,
+        180,
+        191,
+        247,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "signer": true
+        },
+        {
+          "name": "agreement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  103,
+                  114,
+                  101,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "party",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  97,
+                  114,
+                  116,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "agreement_id"
+              },
+              {
+                "kind": "account",
+                "path": "signer"
               }
             ]
           }
