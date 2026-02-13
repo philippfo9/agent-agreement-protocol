@@ -76,21 +76,26 @@ export default function NewAgreementPage() {
     { enabled: !!selectedAgent }
   );
 
-  // Auto-select first agent
+  // Auto-select agent or default to wallet
   useEffect(() => {
-    if (myAgents && myAgents.length > 0 && !selectedAgent) {
-      setSelectedAgent(myAgents[0].account.agentKey.toBase58());
-    }
-  }, [myAgents, selectedAgent]);
-
-  // Check if user needs to register
-  useEffect(() => {
-    if (wallet.publicKey && myAgents && myAgents.length === 0) {
+    if (selectedAgent) return; // already selected
+    if (myAgents && myAgents.length > 0) {
+      // Prefer the identity where agentKey == wallet (human signer)
+      const selfAgent = wallet.publicKey && myAgents.find(a => a.account.agentKey.toBase58() === wallet.publicKey!.toBase58());
+      setSelectedAgent(selfAgent ? selfAgent.account.agentKey.toBase58() : myAgents[0].account.agentKey.toBase58());
+    } else if (myAgents && myAgents.length === 0 && wallet.publicKey) {
+      // No registered identity — default to wallet pubkey, we'll auto-register on propose
+      setSelectedAgent(wallet.publicKey.toBase58());
       setNeedsIdentity(true);
-    } else {
+    }
+  }, [myAgents, selectedAgent, wallet.publicKey]);
+
+  // Reset needsIdentity if agents load later
+  useEffect(() => {
+    if (myAgents && myAgents.length > 0) {
       setNeedsIdentity(false);
     }
-  }, [wallet.publicKey, myAgents]);
+  }, [myAgents]);
 
   const handleTemplateSelect = (index: number | null) => {
     setSelectedTemplate(index);
@@ -174,7 +179,7 @@ export default function NewAgreementPage() {
       return;
     }
     if (!selectedAgent) {
-      setError("No signing identity selected. Please register first.");
+      setError("No signing identity selected. Please connect your wallet.");
       return;
     }
     if (validCounterparties.length === 0) {
@@ -233,14 +238,42 @@ export default function NewAgreementPage() {
     }
 
     try {
-      console.log("[propose] Starting...", { selectedAgent, counterparties: validCounterparties, walletPubkey: wallet.publicKey.toBase58() });
+      console.log("[propose] Starting...", { selectedAgent, counterparties: validCounterparties, walletPubkey: wallet.publicKey.toBase58(), needsIdentity });
       const provider = new AnchorProvider(connection, wallet as any, { commitment: "confirmed" });
       const program = new Program(AAP_IDL as any as Idl, provider);
+
+      // Auto-register if user has no identity yet
+      if (needsIdentity) {
+        console.log("[propose] Auto-registering wallet as human signer...");
+        const [regPDA] = getAgentIdentityPDA(wallet.publicKey);
+        const metadataHash = new Array(32).fill(0);
+        const nameBytes = new TextEncoder().encode(signerName || "Myself");
+        for (let i = 0; i < Math.min(nameBytes.length, 32); i++) {
+          metadataHash[i] = nameBytes[i];
+        }
+        const scope = {
+          canSignAgreements: true,
+          canCommitFunds: false,
+          maxCommitLamports: new BN(0),
+          expiresAt: new BN(0),
+        };
+        await (program.methods as any)
+          .registerAgent(wallet.publicKey, metadataHash, scope)
+          .accounts({
+            authority: wallet.publicKey,
+            agentIdentity: regPDA,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+        console.log("[propose] Registration complete");
+        setNeedsIdentity(false);
+        setSelectedAgent(wallet.publicKey.toBase58());
+      }
 
       const agreementId = randomAgreementId();
       const [agreementPda] = getAgreementPDA(agreementId);
 
-      const proposerKey = new PublicKey(selectedAgent);
+      const proposerKey = new PublicKey(selectedAgent || wallet.publicKey.toBase58());
       const [proposerIdentityPDA] = getAgentIdentityPDA(proposerKey);
       const [proposerPartyPDA] = getPartyPDA(agreementId, proposerIdentityPDA);
       console.log("[propose] PDAs:", { proposerKey: proposerKey.toBase58(), proposerIdentityPDA: proposerIdentityPDA.toBase58(), proposerPartyPDA: proposerPartyPDA.toBase58(), agreementPda: agreementPda.toBase58() });
@@ -437,37 +470,7 @@ export default function NewAgreementPage() {
         </div>
       ) : null}
 
-      {needsIdentity ? (
-        <div className="dark-card p-8 text-center">
-          <div className="text-4xl mb-4">✍️</div>
-          <h2 className="text-lg font-semibold text-shell-heading mb-2">Sign as Human</h2>
-          <p className="text-sm text-shell-muted mb-6">
-            Create an on-chain signing identity linked to your wallet. This is a one-time setup — your wallet stays in full control.
-          </p>
-          <div className="max-w-xs mx-auto mb-4">
-            <input
-              type="text"
-              placeholder="Your name (optional)"
-              value={signerName}
-              onChange={(e) => setSignerName(e.target.value)}
-              className="w-full bg-white/[0.05] border border-white/10 rounded-lg px-4 py-2.5 text-sm text-shell-fg placeholder:text-shell-dim focus:outline-none focus:border-white/30"
-            />
-          </div>
-          <button
-            onClick={handleQuickRegister}
-            disabled={isRegistering}
-            className="bg-white hover:bg-gray-200 disabled:bg-shell-skeleton disabled:text-shell-dim text-black font-medium py-3 px-8 rounded-lg transition-all"
-          >
-            {isRegistering ? "Creating identity..." : "Create Signing Identity"}
-          </button>
-          <p className="text-xs text-shell-dim mt-3">
-            Generates a signing key under your wallet authority. Costs ~0.002 SOL (rent, reclaimable).
-          </p>
-          {error && (
-            <div className="mt-4 text-sm text-shell-muted">⚠️ {error}</div>
-          )}
-        </div>
-      ) : (
+      {(
         <div className="dark-card p-8 space-y-6">
           {/* Template selection */}
           <div>
@@ -512,18 +515,12 @@ export default function NewAgreementPage() {
           </div>
 
           {/* Proposer selection */}
-          {myAgents && myAgents.length > 0 ? (
-            <div>
-              <label className="block text-sm text-shell-muted mb-1.5">Sign as</label>
+          <div>
+            <label className="block text-sm text-shell-muted mb-1.5">Sign as</label>
+            {myAgents && myAgents.length > 0 ? (
               <select
                 value={selectedAgent}
-                onChange={(e) => {
-                  if (e.target.value === "__register_self__") {
-                    handleQuickRegister();
-                  } else {
-                    setSelectedAgent(e.target.value);
-                  }
-                }}
+                onChange={(e) => setSelectedAgent(e.target.value)}
                 className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text focus:outline-none focus:ring-1 focus:ring-white/20"
               >
                 {myAgents.map((agent) => {
@@ -544,14 +541,14 @@ export default function NewAgreementPage() {
                     </option>
                   );
                 })}
-                {wallet.publicKey && !myAgents.some((a) => a.account.agentKey.toBase58() === wallet.publicKey!.toBase58()) && (
-                  <option value="__register_self__">
-                    ✍️ Sign as myself ({wallet.publicKey.toBase58().slice(0, 8)}...)
-                  </option>
-                )}
               </select>
-            </div>
-          ) : null}
+            ) : (
+              <div className="w-full bg-input border border-input-border rounded-lg px-4 py-2.5 text-sm text-input-text">
+                ✍️ Myself ({wallet.publicKey?.toBase58().slice(0, 8)}...)
+                <span className="text-shell-dim ml-2">— identity will be created on propose</span>
+              </div>
+            )}
+          </div>
 
           {/* Counterparties */}
           <div>
