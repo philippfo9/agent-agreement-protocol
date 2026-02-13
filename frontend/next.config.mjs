@@ -3,6 +3,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  outputFileTracingIncludes: {
+    "/api/agreements/pdf": ["./node_modules/pdfkit/js/data/**/*"],
+  },
   experimental: {
     optimizePackageImports: [
       "@solana/wallet-adapter-react",
