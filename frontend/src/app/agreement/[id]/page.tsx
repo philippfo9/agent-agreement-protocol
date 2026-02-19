@@ -155,6 +155,7 @@ export default function AgreementDetailPage() {
   const params = useParams();
   const pdaStr = params.id as string;
   const { data, isLoading, error } = useAgreementDetail(pdaStr);
+  const { publicKey } = useWallet();
 
   if (isLoading) return <ProfileSkeleton />;
   if (error || !data) {
@@ -175,8 +176,20 @@ export default function AgreementDetailPage() {
   const currentStep = statusToStep(agreement.status);
   const isCancelled = agreement.status === 5;
 
-  // Private agreements: show only minimal info
-  if (isPrivate) {
+  // Check if connected wallet is a party to this agreement
+  const isParty = publicKey && parties.some(
+    (p: any) => {
+      const agentKey = p.party?.account?.agentKey || p.identity?.account?.agentKey;
+      const authority = p.identity?.account?.authority;
+      return (
+        (agentKey && publicKey.equals(agentKey)) ||
+        (authority && publicKey.equals(authority))
+      );
+    }
+  );
+
+  // Private agreements: show only minimal info to non-parties
+  if (isPrivate && !isParty) {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="mb-10">
