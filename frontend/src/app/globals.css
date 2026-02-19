@@ -64,9 +64,13 @@
 }
 
 @layer components {
-  /* Document card — "paper on desk" look (always light) */
+  /* Document card — adapts to theme */
   .document-card {
     @apply bg-document rounded-xl border border-document-border shadow-document text-gray-900 relative overflow-hidden;
+  }
+
+  :is(.dark) .document-card {
+    @apply bg-[#141414] border-[rgba(255,255,255,0.08)] text-gray-100;
   }
 
   .document-card:hover {

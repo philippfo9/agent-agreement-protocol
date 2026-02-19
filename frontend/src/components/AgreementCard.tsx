@@ -45,30 +45,30 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
             </span>
             <StatusBadge status={account.status} />
           </div>
-          <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             <span className="font-medium">{AGREEMENT_TYPE_LABELS[account.agreementType] ?? "Unknown"}</span>
             <span className="text-gray-300">·</span>
-            <span className={isPrivate ? "text-gray-500" : "text-gray-400"}>
+            <span className={isPrivate ? "text-gray-500 dark:text-gray-400" : "text-gray-400 dark:text-gray-500 dark:text-gray-400"}>
               {isPrivate ? "🔒 Private" : "Public"}
             </span>
           </div>
         </div>
         <div className="text-right">
           <div className="text-sm text-gray-700 font-medium">
-            {account.numSigned}/{account.numParties} <span className="font-serif italic text-gray-400">signed</span>
+            {account.numSigned}/{account.numParties} <span className="font-serif italic text-gray-400 dark:text-gray-500 dark:text-gray-400">signed</span>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 text-sm mb-4">
         <div>
-          <div className="text-gray-400 text-xs mb-1">Proposer</div>
-          <span className="text-gray-600 font-mono text-xs font-medium">
+          <div className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-xs mb-1">Proposer</div>
+          <span className="text-gray-600 dark:text-gray-300 font-mono text-xs font-medium">
             {shortenPubkey(account.proposer)}
           </span>
         </div>
         <div>
-          <div className="text-gray-400 text-xs mb-1">Escrow</div>
+          <div className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-xs mb-1">Escrow</div>
           <div className="text-gray-700 font-medium">
             {account.escrowTotal.toNumber() > 0
               ? `${lamportsToSol(account.escrowTotal)} SOL`
@@ -78,16 +78,16 @@ export function AgreementCard({ agreement }: { agreement: AgreementAccount }) {
       </div>
 
       {isPrivate ? (
-        <div className="bg-gray-100 border border-gray-200 rounded-lg p-3 text-xs text-gray-600">
+        <div className="bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg p-3 text-xs text-gray-600 dark:text-gray-300">
           🔒 Encrypted — only parties can view terms
         </div>
       ) : termsUri ? (
-        <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500 font-mono break-all">
+        <div className="bg-gray-50 dark:bg-white/5 rounded-lg p-3 text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
           {termsUri}
         </div>
       ) : null}
 
-      <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between text-xs text-gray-400">
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 flex items-center justify-between text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400">
         <span>Created {formatTimestamp(account.createdAt)}</span>
         {account.expiresAt.toNumber() > 0 ? (
           <span>Expires {formatTimestamp(account.expiresAt)}</span>

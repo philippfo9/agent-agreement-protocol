@@ -189,31 +189,31 @@ function ExploreCard({ agreement }: { agreement: AgreementAccount }) {
           </span>
           <StatusBadge status={account.status} />
         </div>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400">
           {formatTimestamp(account.createdAt)}
         </span>
       </div>
-      <div className="text-xs text-gray-500 mb-2">
+      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
         {AGREEMENT_TYPE_LABELS[account.agreementType] ?? "Unknown"}
       </div>
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-500 text-xs">
+        <span className="text-gray-500 dark:text-gray-400 text-xs">
           Proposer:{" "}
-          <span className="font-mono text-gray-600 font-medium">
+          <span className="font-mono text-gray-600 dark:text-gray-300 font-medium">
             {shortenPubkey(account.proposer)}
           </span>
         </span>
-        <span className="text-gray-400 text-xs">
+        <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-xs">
           {account.numSigned}/{account.numParties} <span className="font-serif italic">signed</span>
         </span>
       </div>
       {account.escrowTotal.toNumber() > 0 ? (
-        <div className="mt-2 text-xs text-gray-500 font-medium">
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
           {lamportsToSol(account.escrowTotal)} SOL escrowed
         </div>
       ) : null}
       {termsUri ? (
-        <div className="mt-2 text-[11px] text-gray-400 font-mono truncate bg-gray-50 rounded px-2 py-1">
+        <div className="mt-2 text-[11px] text-gray-400 dark:text-gray-500 dark:text-gray-400 font-mono truncate bg-gray-50 dark:bg-white/5 rounded px-2 py-1">
           {termsUri}
         </div>
       ) : null}

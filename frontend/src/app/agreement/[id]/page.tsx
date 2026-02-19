@@ -121,28 +121,28 @@ function SignAction({ agreement, parties, pdaStr }: { agreement: any; parties: a
 
   if (signed) {
     return (
-      <div className="mb-8 pb-8 border-b border-gray-200 text-center">
+      <div className="mb-8 pb-8 border-b border-gray-200 dark:border-white/10 text-center">
         <div className="text-2xl mb-2">✅</div>
-        <p className="text-gray-600 font-medium">Agreement signed! Refresh to see updated status.</p>
+        <p className="text-gray-600 dark:text-gray-300 font-medium">Agreement signed! Refresh to see updated status.</p>
       </div>
     );
   }
 
   return (
-    <div className="mb-8 pb-8 border-b border-gray-200">
-      <div className="bg-gray-50 rounded-xl p-6 text-center">
+    <div className="mb-8 pb-8 border-b border-gray-200 dark:border-white/10">
+      <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-6 text-center">
         <div className="text-2xl mb-2">✍️</div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Your Signature Required</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Your Signature Required</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           This agreement is waiting for your signature. Review the terms above and sign to activate.
         </p>
         {signError && (
-          <div className="mb-4 text-sm text-gray-500">⚠️ {signError}</div>
+          <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">⚠️ {signError}</div>
         )}
         <button
           onClick={() => startTransition(() => { handleSign(); })}
           disabled={isPending}
-          className="bg-gray-800 hover:bg-gray-700 disabled:bg-gray-300 text-white font-medium py-3 px-8 rounded-lg transition-all"
+          className="bg-gray-800 hover:bg-gray-700 dark:bg-white dark:hover:bg-gray-200 disabled:bg-gray-300 text-white font-medium py-3 px-8 rounded-lg transition-all"
         >
           {isPending ? "Signing..." : "Sign Agreement"}
         </button>
@@ -201,7 +201,7 @@ export default function AgreementDetailPage() {
         </div>
         <div className="dark-card p-10 text-center">
           <div className="text-5xl mb-6">🔒</div>
-          <h2 className="text-xl font-bold text-gray-400 mb-3">Private Agreement</h2>
+          <h2 className="text-xl font-bold text-gray-400 dark:text-gray-500 dark:text-gray-400 mb-3">Private Agreement</h2>
           <p className="text-shell-muted text-sm max-w-md mx-auto leading-relaxed">
             This agreement is encrypted and only visible to its parties.
             Terms, party details, and escrow information are not publicly accessible.
@@ -237,7 +237,7 @@ export default function AgreementDetailPage() {
         <div className="flex items-center gap-2 mt-2 text-xs text-shell-dim">
           <span className="font-medium">{AGREEMENT_TYPE_LABELS[agreement.agreementType] ?? "Unknown"}</span>
           <span>·</span>
-          <span className={isPrivate ? "text-gray-500" : ""}>
+          <span className={isPrivate ? "text-gray-500 dark:text-gray-400" : ""}>
             {isPrivate ? "🔒 Private" : "🌐 Public"}
           </span>
         </div>
@@ -247,7 +247,7 @@ export default function AgreementDetailPage() {
       <div className="dark-card p-8 mb-8">
         <h2 className="text-sm uppercase tracking-wider text-shell-dim mb-6">Lifecycle</h2>
         {isCancelled ? (
-          <div className="text-center text-gray-500 text-sm py-3 bg-white/5 rounded-lg border border-white/10">
+          <div className="text-center text-gray-500 dark:text-gray-400 text-sm py-3 bg-white/5 rounded-lg border border-white/10">
             Agreement was cancelled
           </div>
         ) : (
@@ -284,10 +284,10 @@ export default function AgreementDetailPage() {
 
         {/* Parties Section */}
         <div className="mb-8">
-          <h2 className="text-lg font-bold text-gray-800 mb-1">
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">
             Parties
           </h2>
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 mb-4">
             {agreement.numSigned}/{agreement.numParties} <span className="font-serif italic">signed</span>
           </p>
           <div className="space-y-3">
@@ -296,28 +296,28 @@ export default function AgreementDetailPage() {
               return (
                 <div
                   key={party.publicKey.toBase58()}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-gray-50 rounded-lg p-4 border border-gray-100"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-gray-50 dark:bg-white/5 rounded-lg p-4 border border-gray-100 dark:border-white/10"
                 >
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/agent/${identity ? identity.agentKey.toBase58() : party.account.agentIdentity.toBase58()}`}
-                      className="text-gray-600 hover:text-gray-500 font-mono text-sm font-medium"
+                      className="text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:text-gray-400 font-mono text-sm font-medium"
                     >
                       {shortenPubkey(agentKey, 6)}
                     </Link>
-                    <span className="text-[11px] uppercase tracking-wider text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-medium">
+                    <span className="text-[11px] uppercase tracking-wider text-gray-400 dark:text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded font-medium">
                       {ROLE_LABELS[party.account.role] ?? "Unknown"}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
                     {party.account.escrowDeposited.toNumber() > 0 ? (
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-gray-500 dark:text-gray-400 text-xs">
                         {lamportsToSol(party.account.escrowDeposited)} SOL
                       </span>
                     ) : null}
                     <span
                       className={
-                        party.account.signed ? "text-gray-600 font-medium" : "text-gray-400"
+                        party.account.signed ? "text-gray-600 dark:text-gray-300 font-medium" : "text-gray-400 dark:text-gray-500 dark:text-gray-400"
                       }
                     >
                       {party.account.signed
@@ -335,28 +335,28 @@ export default function AgreementDetailPage() {
         <SignAction agreement={agreement} parties={parties} pdaStr={pdaStr} />
 
         {/* Terms Section */}
-        <div className="mb-8 pb-8 border-b border-gray-200">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Terms</h2>
+        <div className="mb-8 pb-8 border-b border-gray-200 dark:border-white/10">
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">Terms</h2>
           <div className="space-y-4 text-sm">
             <div>
-              <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Terms Hash</div>
-              <div className="font-mono text-gray-600 text-xs break-all bg-gray-50 rounded p-3">
+              <div className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-xs mb-1 uppercase tracking-wider">Terms Hash</div>
+              <div className="font-mono text-gray-600 dark:text-gray-300 text-xs break-all bg-gray-50 dark:bg-white/5 rounded p-3">
                 {termsHash}
               </div>
             </div>
             <div>
-              <div className="text-gray-400 text-xs mb-1 uppercase tracking-wider">Terms URI</div>
+              <div className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-xs mb-1 uppercase tracking-wider">Terms URI</div>
               {termsUri ? (
                 <a
                   href={termsUri.startsWith("http") ? termsUri : `https://arweave.net/${termsUri}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-gray-500 text-xs font-mono break-all"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-500 dark:text-gray-400 text-xs font-mono break-all"
                 >
                   {termsUri}
                 </a>
               ) : (
-                <span className="text-gray-400 text-xs">None</span>
+                <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-xs">None</span>
               )}
             </div>
           </div>
@@ -364,17 +364,17 @@ export default function AgreementDetailPage() {
 
         {/* Escrow Section */}
         <div>
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Escrow</h2>
+          <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">Escrow</h2>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-gray-800">
+            <span className="text-3xl font-bold text-gray-800 dark:text-gray-100">
               {agreement.escrowTotal.toNumber() > 0
                 ? lamportsToSol(agreement.escrowTotal)
                 : "0"}
             </span>
-            <span className="text-gray-400 text-sm">SOL</span>
+            <span className="text-gray-400 dark:text-gray-500 dark:text-gray-400 text-sm">SOL</span>
           </div>
           {agreement.escrowTotal.toNumber() > 0 ? (
-            <div className="mt-2 text-xs text-gray-400 font-mono">
+            <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 dark:text-gray-400 font-mono">
               Mint: {shortenPubkey(agreement.escrowMint, 8)}
             </div>
           ) : null}
